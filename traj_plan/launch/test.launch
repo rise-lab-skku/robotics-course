@@ -1,0 +1,6 @@
+<launch>
+
+    <node pkg="traj_plan" type="traj_plan" name="traj_plan" output="screen"/>
+    <node pkg="traj_plan" type="waypoint_pub" name="waypoint_pub" />
+
+</launch>

@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="pick_n_place" type="my_puma" name="my_puma" output="screen"/>
+</launch>

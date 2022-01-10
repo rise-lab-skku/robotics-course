@@ -1,0 +1,10 @@
+controller_list:
+  - name: fake_rrr_controller
+    type: $(arg execution_type)
+    joints:
+      - joint1
+      - joint2
+      - joint3
+initial:  # Define initial robot poses.
+  - group: rrr
+    pose: zero_pose

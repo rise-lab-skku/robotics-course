@@ -1,0 +1,11 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: puma560_description
+    relative_path: urdf/puma560_robot.urdf.xacro
+    xacro_args: ""
+  SRDF:
+    relative_path: config/Puma560.srdf
+  CONFIG:
+    author_name: skku
+    author_email: rise@skku.edu
+    generated_timestamp: 1640794187

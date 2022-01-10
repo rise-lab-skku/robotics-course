@@ -1,0 +1,11 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: rrr_description
+    relative_path: urdf/rrr_description.urdf
+    xacro_args: ""
+  SRDF:
+    relative_path: config/rrr_description.srdf
+  CONFIG:
+    author_name: r
+    author_email: fake@gmail.com
+    generated_timestamp: 1641648040
