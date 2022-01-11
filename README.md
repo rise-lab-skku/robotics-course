@@ -1,6 +1,6 @@
 # robotics-course
 
-## Requirements
+## Dependencies
 
 - Eigen
 
@@ -30,7 +30,11 @@
 
 ### Clone
 
-Clone this repository into your `catkin_ws/src`.
+Clone this repository into your `catkin_ws/src`. ([How to "git clone" including submodules?](https://stackoverflow.com/questions/3796927/how-to-git-clone-including-submodules))
+
+```
+git clone --recursive https://github.com/rise-lab-skku/robotics-course.git
+```
 
 ### Build
 
