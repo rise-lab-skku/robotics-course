@@ -21,12 +21,9 @@ public:
     // update from odometer
     void Predict(float u, float q)
     {
-
-        // x = Fx + Bu
-        // F == 1, B== 1
+        // 여기서 u는 이동한 거리. 모션모델.
         x_ = x_ + u;
-        // P = FPF^T + Q
-        // F == 1
+        // p_는 위치의 분산. q는 이동한 거리의 분산.
         p_ = p_ + q;
     }
     // predict from laser scan
@@ -34,76 +31,91 @@ public:
     {
         // kalman gain
         float K = 0;
-
+        // divide by zero 에러 제거
         if (p_ != 0)
         {
             K = p_ / (p_ + r);
         }
 
-        // state
+        // state 업데이트
         x_ = x_ + K * (z - x_);
 
-        // variance
+        // variance 업데이트
         p_ = (1 - K) * p_;
     }
 
     void OdometryCallback(const nav_msgs::Odometry::ConstPtr &msg)
     {
+        // 첫 번째 odometry에서 마지막 측정의 타임스탬프를 저장 후 아무것도 하지 않음.
+        // 이동한 거리를 측정하려면 두 개의 시점이 필요하다.
         if (prev_prediction_ == ros::Time(0))
         {
             prev_prediction_ = msg->header.stamp;
             return;
         }
+        // delta t를 구한다.
         const float &dt = (msg->header.stamp - prev_prediction_).toSec();
-
+        // x축으로 이동한 거리
         float u = msg->twist.twist.linear.x * dt;
+        // 이동 후 x의 공분산 증분.
         float q = 0.0001;
 
         Predict(u, q);
+        // 타임스탬프 업데이트
         prev_prediction_ = msg->header.stamp;
     }
 
     void LaserScanCallback(const sensor_msgs::LaserScan::ConstPtr &msg)
     {
+        // 측정할 물체의 roi를 박스로 설정한다.
+        const float &roi_x_min = 0.10;  // x축 최소
+        const float &roi_x_max = 1.0;   // x축 최대
+        const float &roi_y_min = -0.40; // y축 최소
+        const float &roi_y_max = 0.40;  // y축 최대
+
+        // 측정한 물체의 laser scan의 포인트들의 x를 통계낸다.
+        float x_sum = 0;        // 합
+        float x_sq_sum = 0;     // 제곱의 합
+        unsigned int count = 0; // 통계낸 x의 개수
+
+        // laser scan은 z축 기준으로 회전하면서 x축부터 angle이 0 radian으로 시작, 반시계로 돌아 한바퀴 돌면 2 pi radian이 된다.
         float ang = msg->angle_min;
-
-        const float &roi_x_min = 0.10;
-        const float &roi_x_max = 1.0;
-        const float &roi_y_min = -0.40;
-        const float &roi_y_max = 0.40;
-
-        float x_sum = 0;
-        float x_sq_sum = 0;
-        unsigned int count = 0;
         for (auto &r : msg->ranges)
         {
-
+            // 측정한 angle 에서 range를 이용, point의 좌표를 얻는다.
             const float &x = r * std::cos(ang);
             const float &y = r * std::sin(ang);
+
+            // roi 바깥의 포인트는 필요 없으니 건너뛴다.
             if (x < roi_x_min || x > roi_x_max || y < roi_y_min || y > roi_y_max)
             {
                 continue;
             }
-            x_sum += x;
-            x_sq_sum += x;
-            count += 1;
-            ang += msg->angle_increment;
+            // 포인트의 x의 통계를 업데이트
+            x_sum += x;                  // x의 합
+            x_sq_sum += x;               // x 제곱의 합
+            count += 1;                  // 개수 1 증가
+            ang += msg->angle_increment; // 다음 angle로 업데이트
         }
+        // 측정이 이루어지지 않은 것. devide by zero 회피
         if (count == 0)
         {
             return;
         }
-        const float &x_mean = x_sum / count;
-        const float &z = 1.0 - x_mean;
-        const float &z_var = x_sq_sum / count - x_mean * x_mean;
+        // 통계를 마무리 한다.
+        const float &x_mean = x_sum / count;                     //x의 평균
+        const float &z = 1.0 - x_mean;                           // 물체는 원래 로봇보다 1m 앞에 있었다. 따라서 1m 에서 물체까지의 거리를 빼면 로봇의 현재 위치가 된다.
+        const float &z_var = x_sq_sum / count - x_mean * x_mean; // 제곱의 평균 - 평균의 제곱 = 분산. 1-x 의 분산은 x 의 분산과 동일함.
+        // 칼만필터 업데이트
         Update(z, z_var);
-        ROS_INFO("%f, %f, %f", z, z_var, x_);
+        // 화면에 출력
+        ROS_INFO("z: %f, z_var: %f, x_expected: %f", z, z_var, x_);
+        // 메시지 생성 후 칼만 필터 결과를 publish한다.
         turtle_control::kf kf_msg;
         kf_msg.x = x_;
         kf_msg.z = z;
         kf_msg.z_var = z_var;
         pub_kf_.publish(kf_msg);
-        // ROS_INFO("z: %f, z_var: %f, x_expected: %f", z, z_var, x_);
     }
 
 private:
@@ -117,12 +129,15 @@ private:
 
 int main(int argc, char *argv[])
 {
+    // 노드 초기화
     ros::init(argc, argv, "turtle_localization");
+    // 노드 핸들을 private namespace로 초기화
     ros::NodeHandle nh("~");
-
+    // 칼만필터 생성
     KalmanFilter1D kf(0, 0.05);
+    // 칼만필터 초기화
     kf.Init(nh);
+    // 콜백 작동 시작
     ros::spin();
-
     return 0;
 }
