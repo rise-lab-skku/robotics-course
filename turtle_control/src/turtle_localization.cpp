@@ -7,18 +7,33 @@
 class KalmanFilter1D
 {
 public:
+    //! @brief 1D 칼만필터를 생성한다.
+    //!
+    //! @param[in] x 초기 상태
+    //! @param[in] p 초기 상태 공분산
     KalmanFilter1D(float x, float p) : x_(x), p_(p)
     {
     }
+    //! @brief ros publisher와 subscriber를 초기화한다.
+    //!
+    //! @param[in] nh 노드 핸들
     void Init(ros::NodeHandle &nh)
     {
+        // laser scan 메시지를 구독한다.
         sub_scan_ = nh.subscribe("/scan", 3, &KalmanFilter1D::LaserScanCallback, this);
+        // odometry message를 구독한다.
         sub_odom_ = nh.subscribe("/odom", 3, &KalmanFilter1D::OdometryCallback, this);
+        // 칼만필터 결과를 발행한다.
         pub_kf_ = nh.advertise<turtle_control::kf>("kf", 3);
+        // 이전 측정 타임스탬프 초기화
         prev_prediction_ = ros::Time(0);
     }
+    //! @brief 기본 파괴자
     ~KalmanFilter1D() {}
-    // update from odometer
+    //! @brief odometer로부터 칼만 필터의 prediction 단계를 수행한다.
+    //!
+    //! @param[in] u 모션 모델의 입력
+    //! @param[in] q 모션 모델의 상태 예측에 대한 공분산
     void Predict(float u, float q)
     {
         // 여기서 u는 이동한 거리. 모션모델.
@@ -26,7 +41,10 @@ public:
         // p_는 위치의 분산. q는 이동한 거리의 분산.
         p_ = p_ + q;
     }
-    // predict from laser scan
+    //! @brief laser scan으로부터 칼만필터의 update단계를 수행한다.
+    //!
+    //! @param[in] z 센서 관측. 여기서는 x축 위치를 나타냄
+    //! @param[in] r 센서 관측 노이즈.
     void Update(float z, float r)
     {
         // kalman gain
@@ -44,6 +62,9 @@ public:
         p_ = (1 - K) * p_;
     }
 
+    //! @brief odometry callback
+    //!
+    //! @param[in] msg 구독자가 수신한 odometry 메시지
     void OdometryCallback(const nav_msgs::Odometry::ConstPtr &msg)
     {
         // 첫 번째 odometry에서 마지막 측정의 타임스탬프를 저장 후 아무것도 하지 않음.
@@ -64,7 +85,9 @@ public:
         // 타임스탬프 업데이트
         prev_prediction_ = msg->header.stamp;
     }
-
+    //! @brief laser scan callback
+    //!
+    //! @param[in] msg 구독자가 수신한 laser scan 메시지
     void LaserScanCallback(const sensor_msgs::LaserScan::ConstPtr &msg)
     {
         // 측정할 물체의 roi를 박스로 설정한다.
