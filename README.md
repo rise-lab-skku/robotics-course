@@ -85,6 +85,7 @@ git clone --recursive https://github.com/rise-lab-skku/robotics-course.git
 - traj_plan
   - [@ohilho](https://github.com/ohilho)
   - Implementation of [cubic spline algorithm from Wikipedia](https://en.wikipedia.org/wiki/Spline_(mathematics)#Algorithm_for_computing_natural_cubic_splines)
+  - traj_plan 폴더만 다운받는 [링크](https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/rise-lab-skku/robotics-course/tree/main/traj_plan)
 - kinematics_demo
   - [@ryul1206](https://github.com/ryul1206)
   - fk_node (fk_main.cpp)

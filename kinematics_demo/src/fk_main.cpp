@@ -38,8 +38,6 @@ int main(int argc, char **argv)
     spinner.start();
     static const std::string LOGNAME = "fk_node";
 
-    // rosrun fk_moveit fk_node _robot:=puma_560
-    int robot_type;
     std::string planning_group;
     if (nh.getParam("robot", planning_group))
     {
@@ -90,8 +88,7 @@ int main(int argc, char **argv)
         cartesian_way1.position.x = 0.25;
         cartesian_way1.position.y = -0.1;
         cartesian_way1.position.z = 0.02;
-        // tf2::Quaternion target_quat(tf2::Vector3(1.0, 0.0, 0.0), M_PI);
-        // cartesian_way1.orientation = tf2::toMsg(target_quat);
+        cartesian_way1.orientation.w = 1.0;
         cartesian_waypoints.push_back(geometry_msgs::Pose(cartesian_way1));
         cartesian_waypoints.push_back(geometry_msgs::Pose(cartesian_way1));
         cartesian_waypoints.push_back(geometry_msgs::Pose(cartesian_way1));
@@ -137,6 +134,13 @@ int main(int argc, char **argv)
     {
         ROS_INFO("< Planning to waypoint %d >", i);
         current_joints = move_group.getCurrentJointValues();
+
+        // Forward kinematics validation
+        const std::string &eef_name = joint_model_group->getLinkModelNames().back();
+        kinematic_state->setJointGroupPositions(joint_model_group, joint_waypoints[i]);
+        Eigen::Affine3d eef_transformation = kinematic_state->getGlobalLinkTransform(eef_name);
+        geometry_msgs::Pose eef_pose = Eigen::toMsg(eef_transformation);
+        ROS_INFO_STREAM("EEF pose of waypoint" << i << " : " << eef_pose);
 
         // Cubic interpolation
         trajectory_msgs::JointTrajectory req_waypoints;
