@@ -87,9 +87,10 @@ int main(int argc, char **argv)
     }
     else if (planning_group.compare("rrr") == 0)
     {
-        target_pose1.position.x = 0.2;
-        target_pose1.position.y = -0.15;
+        target_pose1.position.x = 0.25;
+        target_pose1.position.y = -0.1;
         target_pose1.position.z = 0.02;
+        target_pose1.orientation.w = 1.0;
         dx = 0.2;
         dy = 0.2;
     }
@@ -166,7 +167,7 @@ int main(int argc, char **argv)
 
         // Linear interpolation of Position
         std::vector<geometry_msgs::Pose> waypoints_lin;
-        linear_interpolation(waypoints_lin, waypoints[i], waypoints[(i + 1) % num_waypoints], 10);
+        linear_interpolation(waypoints_lin, waypoints[i], waypoints[next_i], 10);
 
         // Motion planning
         moveit_msgs::RobotTrajectory trajectory;
@@ -181,7 +182,7 @@ int main(int argc, char **argv)
             );
             if (fraction > 0.0) {break;}
         }
-        ROS_INFO("Visualizing plan (cartesian path) (%.2f%% acheived)", fraction * 100.0);
+        ROS_INFO("Cartesian path (%.2f%% acheived)", fraction * 100.0);
 
         moveit::planning_interface::MoveGroupInterface::Plan my_plan;
         if (fraction > 0.95)
@@ -203,10 +204,8 @@ int main(int argc, char **argv)
 
             // Result
             ROS_INFO("Planning successful");
-            // ROS_INFO("Planning time: %.4f sec", my_plan.planning_time_);
             my_plan.trajectory_ = trajectory;
             move_group.execute(my_plan);
-            // move_group.move();
             ROS_INFO("Moving successful");
 
             // Last joints
@@ -221,7 +220,7 @@ int main(int argc, char **argv)
             ROS_WARN("Planning failed");
         }
         // Indexing
-        i = (i + 1) % num_waypoints;
+        i = next_i;
         ROS_INFO("-----------------\n");
     }
     ros::waitForShutdown();

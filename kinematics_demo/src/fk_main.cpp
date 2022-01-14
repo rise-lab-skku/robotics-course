@@ -81,14 +81,14 @@ int main(int argc, char **argv)
     else if (planning_group.compare("rrr") == 0)
     {
         joint_waypoints = {
-            {2.104, -2.636, 0.0},  // way0
-            {1.508, -1.446, 0.0},  // way1
-            {-0.063, -1.446, 0.0}, // way2
-            {0.533, -2.636, 0.0}   // way3
+            {0.595, -1.951, 1.356},  // way0
+            {0.064, -0.565, 0.501},  // way1
+            {0.501, -0.565, 0.064},  // way2
+            {1.356, -1.951, 0.595}   // way3
         };
         geometry_msgs::Pose cartesian_way1;
-        cartesian_way1.position.x = 0.2;
-        cartesian_way1.position.y = -0.15;
+        cartesian_way1.position.x = 0.25;
+        cartesian_way1.position.y = -0.1;
         cartesian_way1.position.z = 0.02;
         // tf2::Quaternion target_quat(tf2::Vector3(1.0, 0.0, 0.0), M_PI);
         // cartesian_way1.orientation = tf2::toMsg(target_quat);
