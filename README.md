@@ -85,6 +85,11 @@ git clone --recursive https://github.com/rise-lab-skku/robotics-course.git
 - traj_plan
   - [@ohilho](https://github.com/ohilho)
   - Implementation of [cubic spline algorithm from Wikipedia](https://en.wikipedia.org/wiki/Spline_(mathematics)#Algorithm_for_computing_natural_cubic_splines)
+- turtle_control
+  - [@ohilho](https://github.com/ohilho), [@ssw0536](https://github.com/ssw0536)
+  - Kalman filter experiments with TurtleBot3
+  - Running the demo
+    - `roslaunch turtle_control demo.launch`
 - kinematics_demo
   - [@ryul1206](https://github.com/ryul1206)
   - fk_node (fk_main.cpp)
