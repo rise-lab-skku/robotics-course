@@ -212,7 +212,7 @@ public:
         new_msg.data.push_back(msg->data.back());
         pub_pose_.publish(new_msg);
     }
-    virtual void JointTrajectoryCallback(const trajectory_msgs::JointTrajectory::ConstPtr &msg)
+    void JointTrajectoryCallback(const trajectory_msgs::JointTrajectory::ConstPtr &msg)
     {
         trajectory_msgs::JointTrajectory new_msg;
         calcJointTrajectory(new_msg, msg);

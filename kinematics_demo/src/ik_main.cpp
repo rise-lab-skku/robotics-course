@@ -65,9 +65,10 @@ int main(int argc, char **argv)
     }
     else if (planning_group.compare("rrr") == 0)
     {
-        target_pose1.position.x = 0.2;
-        target_pose1.position.y = -0.15;
+        target_pose1.position.x = 0.25;
+        target_pose1.position.y = -0.1;
         target_pose1.position.z = 0.02;
+        target_pose1.orientation.w = 1.0;
         dx = 0.2;
         dy = 0.2;
     }
@@ -97,13 +98,14 @@ int main(int argc, char **argv)
     // Setup for planning
     moveit::planning_interface::MoveGroupInterface move_group(planning_group);
     moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
+    move_group.setWorkspace(-2, -2, 0, 2, 2, 3);
 
     // Setup for IK
     robot_state::RobotStatePtr kinematic_state(move_group.getCurrentState());
     const robot_state::JointModelGroup *joint_model_group = kinematic_state->getJointModelGroup(planning_group);
 
     // Placeholder for joint values
-    std::vector<double> joint_values(joint_model_group->getVariableCount());
+    std::vector<double> target_joints(joint_model_group->getVariableCount());
 
     // Demo
     int i = 0;
@@ -117,10 +119,10 @@ int main(int argc, char **argv)
         bool found_ik = kinematic_state->setFromIK(joint_model_group, waypoints[i], attempts, timeout);
         if (found_ik)
         {
-            kinematic_state->copyJointGroupPositions(joint_model_group, joint_values);
-            for (std::size_t i = 0; i < joint_values.size(); ++i)
+            kinematic_state->copyJointGroupPositions(joint_model_group, target_joints);
+            for (std::size_t i = 0; i < target_joints.size(); ++i)
             {
-                ROS_INFO("\t(IK solution) Joint %d: %f", i, joint_values[i]);
+                ROS_INFO("\t(IK solution) Joint %d: %f", i, target_joints[i]);
             }
             Eigen::Vector3d reference_point_position(0.0, 0.0, 0.0);
             Eigen::MatrixXd jacobian;
@@ -137,13 +139,8 @@ int main(int argc, char **argv)
             ROS_WARN("Did not find IK solution");
         }
 
-        // Pose -> PoseStamped
-        geometry_msgs::PoseStamped pose_stamped;
-        pose_stamped.header.frame_id = move_group.getPlanningFrame();
-        pose_stamped.pose = waypoints[i];
-
         // Motion planning
-        move_group.setPoseTarget(pose_stamped);
+        move_group.setJointValueTarget(target_joints);
         moveit::planning_interface::MoveGroupInterface::Plan my_plan;
         bool success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
         if (success)
@@ -180,6 +177,7 @@ int main(int argc, char **argv)
         {
             ROS_WARN("Planning failed");
         }
+
         // Indexing
         i = (i + 1) % num_waypoints;
         ROS_INFO("-----------------\n");

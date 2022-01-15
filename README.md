@@ -85,6 +85,7 @@ git clone --recursive https://github.com/rise-lab-skku/robotics-course.git
 - traj_plan
   - [@ohilho](https://github.com/ohilho)
   - Implementation of [cubic spline algorithm from Wikipedia](https://en.wikipedia.org/wiki/Spline_(mathematics)#Algorithm_for_computing_natural_cubic_splines)
+  - traj_plan 폴더만 다운받는 [링크](https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/rise-lab-skku/robotics-course/tree/main/traj_plan)
 - turtle_control
   - [@ohilho](https://github.com/ohilho), [@ssw0536](https://github.com/ssw0536)
   - Kalman filter experiments with TurtleBot3
@@ -93,15 +94,29 @@ git clone --recursive https://github.com/rise-lab-skku/robotics-course.git
 - kinematics_demo
   - [@ryul1206](https://github.com/ryul1206)
   - fk_node (fk_main.cpp)
-    - `roslaunch pick_n_place demo.launch`
-    - `rosrun traj_plan traj_plan`
-    - `rosrun kinematics_demo fk_node _robot:=puma_560`
-    <!-- - ![IK demo](./img/ik_2022-01-13.jpg) -->
+    - Puma560
+      - `roslaunch pick_n_place demo.launch`
+      - `rosrun traj_plan traj_plan`
+      - `rosrun kinematics_demo fk_node _robot:=puma_560`
+    - RRR
+      - `roslaunch rrr_moveit_config demo.launch`
+      - `rosrun traj_plan traj_plan`
+      - `rosrun kinematics_demo fk_node _robot:=rrr`
   - ik_node (ik_main.cpp)
-    - `roslaunch pick_n_place demo.launch`
-    - `rosrun kinematics_demo ik_node _robot:=puma_560`
-    - ![IK demo](./img/ik_2022-01-13_184153.jpg)
+    - Puma560
+      - `roslaunch pick_n_place demo.launch`
+      - `rosrun kinematics_demo ik_node _robot:=puma_560`
+      - ![IK demo](./img/ik_2022-01-13_184153.jpg)
+    - RRR
+      - `roslaunch rrr_moveit_config demo.launch`
+      - `rosrun kinematics_demo ik_node _robot:=rrr`
+      - ![IK demo](./img/ik_rrr_2022-01-14.jpg)
   - ik_linear (ik_linear_cartesian.cpp)
-    - `roslaunch pick_n_place demo.launch`
-    - `rosrun kinematics_demo ik_linear _robot:=puma_560`
-    - ![IK demo](./img/ik_linear_2022-01-13_213403.jpg)
+    - Puma560
+      - `roslaunch pick_n_place demo.launch`
+      - `rosrun kinematics_demo ik_linear _robot:=puma_560`
+      - ![IK demo](./img/ik_linear_2022-01-13_213403.jpg)
+    - RRR
+      - `roslaunch rrr_moveit_config demo.launch`
+      - `rosrun kinematics_demo ik_linear _robot:=rrr`
+      - ![IK demo](./img/ik_rrr_linear_2022-01-14.jpg)
