@@ -1,0 +1,4 @@
+<launch>
+    <node pkg="turtle_control" type="turtle_control" name="turtle_control" output="screen"/>
+    <node pkg="rosbag" type="record" name="rosbag" args="-o turtle_control --all" />
+</launch>
