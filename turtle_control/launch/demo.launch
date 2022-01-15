@@ -1,6 +1,5 @@
 <launch>
-    <node pkg="rosbag" type="play" name="rosbag" args="$(find turtle_control)/bag/turtle_control_2022-01-13-17-32-39.bag"/>
+    <node pkg="rosbag" type="play" name="rosbag" args="$(find turtle_control)/bag/turtle_control_2022-01-13-17-32-39.bag --delay 3"/>
     <node pkg="turtle_control" type="turtle_localization" name="turtle_localization" output="screen"/>
-    <node pkg="rqt_plot" type="rqt_plot" name="rqt_plot" args="/turtle_localization/kf/x /turtle_localization/kf/z" />
-/>
+    <node pkg="rqt_plot" type="rqt_plot" name="rqt_plot" args="/turtle_localization/kf/x_kf /turtle_localization/kf/x_odom /turtle_localization/kf/x_sensor" />
 </launch>
