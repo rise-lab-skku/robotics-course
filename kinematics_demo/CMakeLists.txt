@@ -52,3 +52,8 @@ add_executable(ik_linear src/ik_linear_cartesian.cpp)
 target_link_libraries(ik_linear
   ${catkin_LIBRARIES}
 )
+
+add_executable(ws_drawing src/ws_drawing.cpp)
+target_link_libraries(ws_drawing
+  ${catkin_LIBRARIES}
+)

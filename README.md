@@ -100,3 +100,6 @@ git clone --recursive https://github.com/rise-lab-skku/robotics-course.git
     - `roslaunch pick_n_place demo.launch`
     - `rosrun kinematics_demo ik_linear _robot:=puma_560`
     - ![IK demo](./img/ik_linear_2022-01-13_213403.jpg)
+- rosbag_archive
+  - [@shinjinjae](https://github.com/shinjinjae)
+  - `rosbag play ***.bag`
