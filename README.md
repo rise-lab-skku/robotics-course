@@ -120,3 +120,6 @@ git clone --recursive https://github.com/rise-lab-skku/robotics-course.git
       - `roslaunch rrr_moveit_config demo.launch`
       - `rosrun kinematics_demo ik_linear _robot:=rrr`
       - ![IK demo](./img/ik_rrr_linear_2022-01-14.jpg)
+- rosbag_archive
+  - [@shinjinjae](https://github.com/shinjinjae)
+  - `rosbag play ***.bag`
