@@ -11,7 +11,7 @@ public:
     //!
     //! @param[in] x 초기 상태
     //! @param[in] p 초기 상태 공분산
-    KalmanFilter1D(float x, float p) : x_(x), p_(p)
+    KalmanFilter1D(float x, float p) : x_kf_(x), x_odom_(x), p_(p)
     {
     }
     //! @brief ros publisher와 subscriber를 초기화한다.
@@ -37,7 +37,8 @@ public:
     void Predict(float u, float q)
     {
         // 여기서 u는 이동한 거리. 모션모델.
-        x_ = x_ + u;
+        x_kf_ = x_kf_ + u;
+        x_odom_ = x_odom_ + u;
         // p_는 위치의 분산. q는 이동한 거리의 분산.
         p_ = p_ + q;
     }
@@ -56,7 +57,7 @@ public:
         }
 
         // state 업데이트
-        x_ = x_ + K * (z - x_);
+        x_kf_ = x_kf_ + K * (z - x_kf_);
 
         // variance 업데이트
         p_ = (1 - K) * p_;
@@ -116,7 +117,7 @@ public:
             }
             // 포인트의 x의 통계를 업데이트
             x_sum += x;                  // x의 합
-            x_sq_sum += x;               // x 제곱의 합
+            x_sq_sum += x*x;               // x 제곱의 합
             count += 1;                  // 개수 1 증가
             ang += msg->angle_increment; // 다음 angle로 업데이트
         }
@@ -132,18 +133,20 @@ public:
         // 칼만필터 업데이트
         Update(z, z_var);
         // 화면에 출력
-        ROS_INFO("z: %f, z_var: %f, x_expected: %f", z, z_var, x_);
+        ROS_INFO("x_kf: %f, x_odom: %f, x_sensor: %f, x_sensor_var: %f", x_kf_, x_odom_, z, z_var);
         // 메시지 생성 후 칼만 필터 결과를 publish한다.
         turtle_control::kf kf_msg;
-        kf_msg.x = x_;
-        kf_msg.z = z;
-        kf_msg.z_var = z_var;
+        kf_msg.x_kf = x_kf_;
+        kf_msg.x_odom = x_odom_;
+        kf_msg.x_sensor = z;
+        kf_msg.x_sensor_var = z_var;
         pub_kf_.publish(kf_msg);
     }
 
 private:
-    float x_;
-    float p_;
+    float x_kf_;  // 칼만 필터의 현재 위치
+    float x_odom_;  // odometry로 부터 얻은 위치
+    float p_;  // 칼만 필터의 현재 분산
     ros::Subscriber sub_odom_;
     ros::Subscriber sub_scan_;
     ros::Time prev_prediction_;
@@ -157,7 +160,7 @@ int main(int argc, char *argv[])
     // 노드 핸들을 private namespace로 초기화
     ros::NodeHandle nh("~");
     // 칼만필터 생성
-    KalmanFilter1D kf(0, 0.05);
+    KalmanFilter1D kf(0.10847, 0.05);
     // 칼만필터 초기화
     kf.Init(nh);
     // 콜백 작동 시작
