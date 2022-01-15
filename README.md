@@ -123,3 +123,4 @@ git clone --recursive https://github.com/rise-lab-skku/robotics-course.git
 - rosbag_archive
   - [@shinjinjae](https://github.com/shinjinjae)
   - `rosbag play ***.bag`
+  - rosbag_archive 폴더만 다운받는 [링크](https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/rise-lab-skku/robotics-course/tree/main/rosbag_archive)
