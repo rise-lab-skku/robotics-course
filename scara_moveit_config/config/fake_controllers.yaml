@@ -1,0 +1,11 @@
+controller_list:
+  - name: fake_scara_controller
+    type: $(arg execution_type)
+    joints:
+      - joint1
+      - joint2
+      - joint3
+      - joint4
+initial:  # Define initial robot poses.
+  - group: scara
+    pose: zero_pose

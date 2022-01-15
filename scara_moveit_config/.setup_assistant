@@ -1,0 +1,11 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: scara_description
+    relative_path: urdf/scara_description.urdf
+    xacro_args: ""
+  SRDF:
+    relative_path: config/scara_description.srdf
+  CONFIG:
+    author_name: rise
+    author_email: rise@skku.edu
+    generated_timestamp: 1642266311

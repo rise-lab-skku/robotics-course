@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com)
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
      Commit Version: 1.6.0-1-g15f4949  Build Version: 1.6.7594.29634
      For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
 <robot
   name="rrr_description">
   <link
     name="link1">
-    <!-- <inertial>
+    <inertial>
       <origin
         xyz="-0.0127598251073137 4.61061268743767E-20 0.0111867616952765"
         rpy="0 0 0" />
@@ -19,7 +19,7 @@
         iyy="0.00011828688774278"
         iyz="4.14957984875535E-22"
         izz="0.000183265747871332" />
-    </inertial> -->
+    </inertial>
     <visual>
       <origin
         xyz="0 0 0"
