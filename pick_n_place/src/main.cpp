@@ -38,7 +38,7 @@ int main(int argc, char **argv)
   // Setup
   // ^^^^^
   // planning group == joint model group
-  static const std::string PLANNING_GROUP = "arm";
+  static const std::string PLANNING_GROUP = "puma_560";
   static const std::string LOGNAME = "my_puma_tutorial";
 
   ROS_INFO_STREAM_NAMED(LOGNAME, "Starting MoveIt Tutorials...");

@@ -6,6 +6,6 @@ moveit_setup_assistant_config:
   SRDF:
     relative_path: config/Puma560.srdf
   CONFIG:
-    author_name: skku
+    author_name: rise
     author_email: rise@skku.edu
-    generated_timestamp: 1640794187
+    generated_timestamp: 1641886151

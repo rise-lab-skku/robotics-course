@@ -1,8 +1,9 @@
-#include <trajectory_msgs/JointTrajectory.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <traj_plan/PoseStampedArray.h>
-#include <ros/ros.h>
 #include <vector>
+#include <ros/ros.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <trajectory_msgs/JointTrajectory.h>
+#include <traj_plan/PoseStampedArray.h>
+#include <traj_plan/JointInterpolation.h>
 
 struct CubicSplineSegment
 {
@@ -142,10 +143,15 @@ public:
     void Init(ros::NodeHandle &nh, float time_period)
     {
         time_period_ = time_period;
+
+        // Topic version
         pub_traj_ = nh.advertise<trajectory_msgs::JointTrajectory>("joint_trajectory", 3, false);
         pub_pose_ = nh.advertise<traj_plan::PoseStampedArray>("pose_trajectory", 3, false);
         sub_traj_ = nh.subscribe("joint_waypoints", 3, &TrajectoryPlanner::JointTrajectoryCallback, this);
         sub_pose_ = nh.subscribe("pose_waypoints", 3, &TrajectoryPlanner::PoseStampedCallback, this);
+
+        // Service version
+        joint_traj_service_ = nh.advertiseService("joint_trajectory_service", &TrajectoryPlanner::JointTrajectoryService, this);
     }
     void PoseStampedCallback(const traj_plan::PoseStampedArray::ConstPtr &msg)
     {
@@ -208,12 +214,28 @@ public:
     }
     virtual void JointTrajectoryCallback(const trajectory_msgs::JointTrajectory::ConstPtr &msg)
     {
-        std::vector<std::vector<float>> positions(msg->joint_names.size());
-        std::vector<InterpolatorType> interpolators(msg->joint_names.size());
+        trajectory_msgs::JointTrajectory new_msg;
+        calcJointTrajectory(new_msg, msg);
+        pub_traj_.publish(new_msg);
+    }
+
+    bool JointTrajectoryService(traj_plan::JointInterpolationRequest &req, traj_plan::JointInterpolationResponse &res)
+    {
+        trajectory_msgs::JointTrajectory new_msg;
+        trajectory_msgs::JointTrajectory::ConstPtr msg(new trajectory_msgs::JointTrajectory(req.waypoints));
+        calcJointTrajectory(new_msg, msg);
+        res.result = new_msg;
+        return true;
+    }
+
+    void calcJointTrajectory(trajectory_msgs::JointTrajectory &res, const trajectory_msgs::JointTrajectory::ConstPtr &req)
+    {
+        std::vector<std::vector<float>> positions(req->joint_names.size());
+        std::vector<InterpolatorType> interpolators(req->joint_names.size());
         std::vector<float> curve_param;
         // make joint positions vectors for each joint.
         int i = 0;
-        for (auto &point : msg->points)
+        for (auto &point : req->points)
         {
             auto it = positions.begin();
             for (auto &p : point.positions)
@@ -231,42 +253,44 @@ public:
         }
 
         // set a new message
-        trajectory_msgs::JointTrajectory new_msg;
-        new_msg.header = msg->header;
-        new_msg.joint_names = msg->joint_names;
+        res.header = req->header;
+        res.joint_names = req->joint_names;
 
         float prev_t = -1;
-        auto it_points = msg->points.begin();
+        auto it_points = req->points.begin();
         for (float t = curve_param.front() + time_period_; t < curve_param.back(); t += time_period_)
         {
 
             if (it_points->time_from_start.toSec() > prev_t && it_points->time_from_start.toSec() < t)
             {
-                new_msg.points.push_back(*it_points);
+                res.points.push_back(*it_points);
                 it_points++;
             }
 
-            new_msg.points.push_back(trajectory_msgs::JointTrajectoryPoint());
+            res.points.push_back(trajectory_msgs::JointTrajectoryPoint());
 
             for (auto &interpolator : interpolators)
             {
-                new_msg.points.back().positions.push_back(interpolator.Interpolate(t));
-                new_msg.points.back().time_from_start = ros::Duration(t) + msg->points.front().time_from_start;
+                res.points.back().positions.push_back(interpolator.Interpolate(t));
+                res.points.back().time_from_start = ros::Duration(t) + req->points.front().time_from_start;
             }
 
             prev_t = t;
         }
-
-        new_msg.points.push_back(msg->points.back());
-        pub_traj_.publish(new_msg);
+        res.points.push_back(req->points.back());
     }
 
 protected:
+    float time_period_;
+
+    // Topic version
     ros::Publisher pub_traj_;
     ros::Publisher pub_pose_;
     ros::Subscriber sub_traj_;
     ros::Subscriber sub_pose_;
-    float time_period_;
+
+    // Service version
+    ros::ServiceServer joint_traj_service_;
 };
 
 int main(int argc, char *argv[])
