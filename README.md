@@ -1,5 +1,14 @@
 # robotics-course
 
+1. [Dependencies](#dependencies)
+2. [Getting Started](#getting-started)
+   1. [Clone](#clone)
+   2. [Build](#build)
+   3. [(Optional) Vscode Include Path](#optional-vscode-include-path)
+3. [사용되는 로봇 descriptions](#사용되는-로봇-descriptions)
+4. [폴더별 내용](#폴더별-내용)
+5. [Reference](#reference)
+
 ## Dependencies
 
 - Eigen
@@ -55,6 +64,32 @@ git clone --recursive https://github.com/rise-lab-skku/robotics-course.git
 ],
 ```
 
+## 사용되는 로봇 descriptions
+
+robots 폴더 내용
+
+- [puma560_description](https://github.com/nimasarli/puma560_description) (submodule)
+  - urdf에 `<collision>`태그가 아예 없으면 moveit이 `<visual>`태그로 충돌을 감지하기 때문에, 충돌을 무시하려면 `<collision>`태그에 더미를 넣어야 함
+- puma560_moveit_config
+  - Generated package using MoveIt Assistant
+  - Planning group name: `puma_560`
+- puma560_w_collision_description
+  - [@shinjinjae](https://github.com/shinjinjae)
+  - puma560_description + collision model
+- puma560_w_collision_moveit_config
+  - Generated package using MoveIt Assistant
+  - Planning group name: `puma_560`
+- rrr_description
+  - [@shinjinjae](https://github.com/shinjinjae)
+- rrr_moveit_config
+  - Generated package using MoveIt Assistant
+  - Planning group name: `rrr`
+- scara_description
+  - [@shinjinjae](https://github.com/shinjinjae)
+- scara_moveit_config
+  - Generated package using MoveIt Assistant
+  - Planning group name: `scara`
+
 ## 폴더별 내용
 
 - g++/eigen_vs_std_matrix
@@ -64,18 +99,6 @@ git clone --recursive https://github.com/rise-lab-skku/robotics-course.git
   - [@ryul1206](https://github.com/ryul1206)
 - g++/poe
   - [@ryul1206](https://github.com/ryul1206)
-- [puma560_description](https://github.com/nimasarli/puma560_description) (submodule)
-- puma560_moveit_config
-  - Generated package using MoveIt Assistant
-- puma560_w_collision_description
-  - [@shinjinjae](https://github.com/shinjinjae)
-  - puma560_description + collision model
-- puma560_w_collision_moveit_config
-  - Generated package using MoveIt Assistant
-- rrr_description
-  - [@shinjinjae](https://github.com/shinjinjae)
-- rrr_moveit_config
-  - Generated package using MoveIt Assistant
 - pick_n_place
   - [@ryul1206](https://github.com/ryul1206)
   - (Ref.) [MoveIt C++ Tutorial](https://github.com/ros-planning/moveit_tutorials/blob/melodic-devel/doc/move_group_interface/src/move_group_interface_tutorial.cpp)
@@ -94,32 +117,32 @@ git clone --recursive https://github.com/rise-lab-skku/robotics-course.git
 - kinematics_demo
   - [@ryul1206](https://github.com/ryul1206)
   - fk_node (fk_main.cpp)
-    - Puma560
-      - `roslaunch pick_n_place demo.launch`
+    - Implemented for Puma560 and RRR
+    - Demo
+      - `roslaunch {ROBOT}_moveit_config demo.launch`
       - `rosrun traj_plan traj_plan`
-      - `rosrun kinematics_demo fk_node _robot:=puma_560`
-    - RRR
-      - `roslaunch rrr_moveit_config demo.launch`
-      - `rosrun traj_plan traj_plan`
-      - `rosrun kinematics_demo fk_node _robot:=rrr`
+      - `rosrun kinematics_demo fk_node _robot:={PLANNONG_GROUP}`
   - ik_node (ik_main.cpp)
-    - Puma560
-      - `roslaunch pick_n_place demo.launch`
-      - `rosrun kinematics_demo ik_node _robot:=puma_560`
-      - ![IK demo](./img/ik_2022-01-13_184153.jpg)
-    - RRR
-      - `roslaunch rrr_moveit_config demo.launch`
-      - `rosrun kinematics_demo ik_node _robot:=rrr`
-      - ![IK demo](./img/ik_rrr_2022-01-14.jpg)
+    - Implemented for Puma560 and RRR
+      - ![IK demo](./img/ik_2022-01-13_184153.jpg) ![IK demo](./img/ik_rrr_2022-01-14.jpg)
+    - Demo
+      - `roslaunch {ROBOT}_moveit_config demo.launch`
+      - `rosrun kinematics_demo ik_node _robot:={PLANNIG_GROUP}`
   - ik_linear (ik_linear_cartesian.cpp)
-    - Puma560
-      - `roslaunch pick_n_place demo.launch`
-      - `rosrun kinematics_demo ik_linear _robot:=puma_560`
-      - ![IK demo](./img/ik_linear_2022-01-13_213403.jpg)
-    - RRR
-      - `roslaunch rrr_moveit_config demo.launch`
-      - `rosrun kinematics_demo ik_linear _robot:=rrr`
-      - ![IK demo](./img/ik_rrr_linear_2022-01-14.jpg)
+    - Implemented for Puma560 and RRR
+      - ![IK demo](./img/ik_linear_2022-01-13_213403.jpg) ![IK demo](./img/ik_rrr_linear_2022-01-14.jpg)
+    - Demo
+      - `roslaunch {ROBOT}_moveit_config demo.launch`
+      - `rosrun kinematics_demo ik_linear _robot:={PLANNING_GROUP}`
+  - ws_drawing (ws_drawing.cpp)
+    - Implemented for PUma560 and Scara
+    - Demo
+      - `roslaunch {ROBOT}_moveit_config demo.launch`
+      - `rosrun kinematics_demo ws_drawing _robot:={PLANNING_GROUP}`
 - rosbag_archive
   - [@shinjinjae](https://github.com/shinjinjae)
   - `rosbag play ***.bag`
+
+## Reference
+
+- [MoveIt C++ Doxygen (Melodic)](https://docs.ros.org/en/melodic/api/moveit_core/html/cpp/index.html)

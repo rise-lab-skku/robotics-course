@@ -13,32 +13,57 @@
 namespace rvt = rviz_visual_tools;
 
 void calcFK(
-    const std::vector<double>& joint_values,
-    const robot_state::RobotStatePtr& kinematic_state,
-    const robot_model::JointModelGroup* joint_model_group,
-    const std::string& eef_link,
-    geometry_msgs::Pose& pose)
+    const std::vector<double> &joint_values,
+    const robot_state::RobotStatePtr &kinematic_state,
+    const robot_model::JointModelGroup *joint_model_group,
+    const std::string &eef_link,
+    geometry_msgs::Pose &pose)
 {
     kinematic_state->setJointGroupPositions(joint_model_group, joint_values);
     Eigen::Affine3d eef_transformation = kinematic_state->getGlobalLinkTransform(eef_link);
     pose = Eigen::toMsg(eef_transformation);
 }
 
-bool calcIK(
-    const geometry_msgs::Pose& eef_pose,
-    const robot_state::RobotStatePtr& kinematic_state,
-    const robot_model::JointModelGroup* joint_model_group,
-    std::vector<double>& joint_values)
+bool checkIK(
+    const geometry_msgs::Pose &eef_pose,
+    const robot_state::RobotStatePtr &kinematic_state,
+    const robot_model::JointModelGroup *joint_model_group)
 {
     const unsigned int attempts = 10;
     const double timeout = 0.1;
-    bool found_ik = kinematic_state->setFromIK(joint_model_group, eef_pose, attempts, timeout);
+    return kinematic_state->setFromIK(joint_model_group, eef_pose, attempts, timeout);
+}
+
+bool calcIK(
+    const geometry_msgs::Pose &eef_pose,
+    const robot_state::RobotStatePtr &kinematic_state,
+    const robot_model::JointModelGroup *joint_model_group,
+    std::vector<double> &joint_values)
+{
+    bool found_ik = checkIK(eef_pose, kinematic_state, joint_model_group);
     if (found_ik)
-    {
         kinematic_state->copyJointGroupPositions(joint_model_group, joint_values);
-    }
     return found_ik;
 }
+
+class Cube
+{
+public:
+    Cube() : anchor(geometry_msgs::Point()) {}
+    ~Cube() {}
+
+    geometry_msgs::Point anchor; // The position of ba corner
+    double width;
+    /**
+     * IK results for each corner. true == solution found.
+     * Cube 8 division order:
+     *     [+x: foward, +y: left, +z: up] => (+++)
+     *     Top CCW   : ta(--+) -> tb(+-+) -> tc(+++) -> td(-++)
+     *     Bottom CCW: ba(---) -> bb(+--) -> bc(++-) -> bd(-+-)
+     */
+    bool ta, tb, tc, td;
+    bool ba, bb, bc, bd;
+};
 
 int main(int argc, char **argv)
 {
@@ -71,20 +96,28 @@ int main(int argc, char **argv)
     robot_state::RobotStatePtr kinematic_state(move_group.getCurrentState());
     const robot_state::JointModelGroup *joint_model_group = kinematic_state->getJointModelGroup(planning_group);
 
+    // Search space
+    // double x_min = -2.0;
+    // double y_min = -2.0;
+    // double z_min = -2.0;
+    // double x_max = 2.0;
+    // double y_max = 2.0;
+    // double z_max = 2.0;
+    // move_group.setWorkspace(x_min, y_min, z_min, x_max, y_max, z_max);
 
     // Set a rosParam for the KDL Kinematics Plugin
     const std::string position_only_ik_param_name =
         "/robot_description_kinematics/" + planning_group + "/position_only_ik";
     nh.setParam(position_only_ik_param_name, true);
+
     ROS_INFO("Waiting for the param to be set");
-    while (true)
+    bool position_only = false;
+    while (!position_only)
     {
-        bool position_only = false;
         nh.getParam(position_only_ik_param_name, position_only);
-        if (position_only) { break; }
-        else { ros::Duration(0.1).sleep(); }
+        ros::Duration(0.1).sleep();
     }
-    ROS_INFO("Param setting complete!");
+    ROS_INFO("Param setting complete!: position_only_ik = %d", position_only);
 
     // Print some info
     ROS_INFO_STREAM("      Joint tolerance: " << move_group.getGoalJointTolerance());
@@ -93,56 +126,59 @@ int main(int argc, char **argv)
     ROS_INFO_STREAM("      Reference frame: " << move_group.getPlanningFrame());
     ROS_INFO_STREAM("    End effector link: " << move_group.getEndEffectorLink());
 
-    // Placeholder for the IK solution
-    std::vector<double> joint_values(joint_model_group->getVariableCount(), 0.0);
-
     // Zero pose for the initial pose
     const std::string &eef_link = move_group.getEndEffectorLink();
     geometry_msgs::Pose zero_pose;
+    std::vector<double> joint_values(joint_model_group->getVariableCount(), 0.0);
     calcFK(joint_values, kinematic_state, joint_model_group, eef_link, zero_pose);
-    ROS_INFO_STREAM("Initial eef pose (zero_pose): " << zero_pose);
+    ROS_INFO_STREAM("Initial eef pose (zero_pose):\n"
+                    << zero_pose);
 
     /**
      * Octree + Marching squares
      */
-    
+    zero_pose.position.z += 0.3;
+    calcIK(zero_pose, kinematic_state, joint_model_group, joint_values);
+    for (auto &jv : joint_values)
+        ROS_INFO_STREAM("IK solution1: " << jv);
 
+    /***************
+     * Octree
+     ***************/
+    const double resolution = 0.1; // Minimum cube width
+    std::vector<Cube> openlist(128, Cube());
+    std::size_t top = 0; // Top index of the openlist
 
+    // Initialize the openlist
+    double initial_width = 2.0;
+    openlist.at(top).
 
+        /*
+        openlist = { initial 4 cube }
 
-    const unsigned int attempts = 10;
-    const double timeout = 0.1;
-    bool found_ik = kinematic_state->setFromIK(joint_model_group, eef_pose, attempts, timeout);
-    if (found_ik)
-    {
-        kinematic_state->copyJointGroupPositions(joint_model_group, joint_values);
-        for (std::size_t j = 0; j < joint_values.size(); ++j)
+        while (openlist has elem)
         {
-            ROS_INFO("(IK solution) Joint %d: %f", j, joint_values[j]);
+            cube = openlist.pop_back()
+
+            if (8 vertices are same)
+            {
+                continue
+                top -= 1
+            }
+            else if (width > min_width)
+            {
+                split into 8 cubes
+                openlist.push_back(8 cubes)
+                top += 8
+            }
+            else
+            {
+                draw marching square
+            }
         }
-    }
-    else
-    {
-        ROS_WARN("Did not find IK solution");
-    }
 
-    // Motion planning
-    move_group.setJointValueTarget(joint_values);
-    moveit::planning_interface::MoveGroupInterface::Plan my_plan;
-    bool success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-    if (success)
-    {
-        // Result
-        ROS_INFO("Planning successful");
-        ROS_INFO("Planning time: %.4f sec", my_plan.planning_time_);
-        move_group.execute(my_plan);
-        ROS_INFO("Moving successful");
-    }
-    else
-    {
-        ROS_WARN("Planning failed");
-    }
+        */
 
-    ros::waitForShutdown();
+        ros::waitForShutdown();
     return 0;
 }
