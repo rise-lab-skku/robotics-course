@@ -4,6 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /MotionPlanning1/Planning Request1
         - /TF1/Tree1
       Splitter Ratio: 0.7425600290298462
     Tree Height: 360
@@ -115,7 +116,7 @@ Visualization Manager:
         Interactive Marker Size: 0
         Joint Violation Color: 255; 0; 255
         Planning Group: rrr
-        Query Goal State: false
+        Query Goal State: true
         Query Start State: false
         Show Workspace: false
         Start State Alpha: 1
@@ -212,25 +213,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 1.5685503482818604
+      Distance: 1.2652761936187744
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.2956928610801697
-        Y: -0.28200700879096985
-        Z: 1.1175876579727628e-6
+        X: 0.406654953956604
+        Y: -0.23263683915138245
+        Z: 1.2665992699112394e-6
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.5447964668273926
+      Pitch: 0.5297963619232178
       Target Frame: link1
       Value: XYOrbit (rviz)
-      Yaw: 4.709935188293457
+      Yaw: 4.774936676025391
     Saved: ~
 Window Geometry:
   Displays:
