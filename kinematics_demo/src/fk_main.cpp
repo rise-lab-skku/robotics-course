@@ -157,14 +157,21 @@ int main(int argc, char **argv)
         srv.request.waypoints = req_waypoints;
         ROS_INFO("Calling service");
         ros::Time start_time = ros::Time::now();
-        if (client.call(srv))
+        for (int attempt = 10; attempt > 0; attempt--)
         {
-            ROS_INFO("< Successfully interpolated to waypoint %d >", i);
-        }
-        else
-        {
-            ROS_ERROR("< Failed to interpolate to waypoint %d >", i);
-            return 1;
+            if (client.call(srv))
+            {
+                ROS_INFO("< Successfully interpolated to waypoint %d >", i);
+                break;
+            }
+            else if (attempt > 0)
+            {
+                ROS_ERROR_STREAM("< Failed to interpolate to waypoint "<< i <<" > (now iter) " << attempt);
+            }
+            else
+            {
+                return 1;
+            }
         }
         ros::Time end_time = ros::Time::now();
 
