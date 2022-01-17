@@ -54,6 +54,7 @@ target_link_libraries(ik_linear
 )
 
 add_executable(ws_drawing src/ws_drawing.cpp)
+target_compile_options(ws_drawing PRIVATE -O3)
 target_link_libraries(ws_drawing
   ${catkin_LIBRARIES}
 )

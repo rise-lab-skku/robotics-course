@@ -68,7 +68,8 @@ git clone --recursive https://github.com/rise-lab-skku/robotics-course.git
 
 robots 폴더 내용
 
-- [puma560_description](https://github.com/nimasarli/puma560_description) (submodule)
+- puma560_description
+  - Forked from [here](https://github.com/nimasarli/puma560_description)
   - urdf에 `<collision>`태그가 아예 없으면 moveit이 `<visual>`태그로 충돌을 감지하기 때문에, 충돌을 무시하려면 `<collision>`태그에 더미를 넣어야 함
 - puma560_moveit_config
   - Generated package using MoveIt Assistant
