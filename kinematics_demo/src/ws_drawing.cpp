@@ -1,11 +1,12 @@
 /**
- * Boundary searching algorithm for the workspace of a robot.
- * Idea1: Octree
- * Idea2: Marching squares
+ * Fast boundary search for the workspace of a robot.
+ * [ BFS -> Octree -> Marching cubes ]
  */
+#include <bitset>
 #include <ros/ros.h>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
+#include <rviz_visual_tools/rviz_visual_tools.h>
 #include <moveit_visual_tools/moveit_visual_tools.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_eigen/tf2_eigen.h>
@@ -30,7 +31,9 @@ bool checkIK(
     const robot_model::JointModelGroup *joint_model_group)
 {
     const unsigned int attempts = 10;
-    const double timeout = 0.1;
+    // 1 msec is enough. ​Usually, 0.02~0.05 msec is required to solve IK.
+    const double timeout = 0.001;
+    ros::Time start_time = ros::Time::now();
     return kinematic_state->setFromIK(joint_model_group, eef_pose, attempts, timeout);
 }
 
@@ -46,24 +49,223 @@ bool calcIK(
     return found_ik;
 }
 
-class Cube
+namespace Octree
 {
-public:
-    Cube() : anchor(geometry_msgs::Point()) {}
-    ~Cube() {}
+    inline unsigned char makeEightIKs(
+        const std::bitset<27> &checkpoints,
+        const std::size_t ba_index,
+        const std::size_t bb_index,
+        const std::size_t bc_index,
+        const std::size_t bd_index,
+        const std::size_t ta_index,
+        const std::size_t tb_index,
+        const std::size_t tc_index,
+        const std::size_t td_index)
+    {
+        /**
+         * { ba, bb, bc, bd, ta, tb, tc, td } eight_iks
+         *    7,  6,  5,  4,  3,  2,  1,  0   => Required shift
+         */
+        return (checkpoints[ba_index] << 7) |
+               (checkpoints[bb_index] << 6) |
+               (checkpoints[bc_index] << 5) |
+               (checkpoints[bd_index] << 4) |
+               (checkpoints[ta_index] << 3) |
+               (checkpoints[tb_index] << 2) |
+               (checkpoints[tc_index] << 1) |
+               checkpoints[td_index];
+    }
 
-    geometry_msgs::Point anchor; // The position of ba corner
-    double width;
-    /**
-     * IK results for each corner. true == solution found.
-     * Cube 8 division order:
-     *     [+x: foward, +y: left, +z: up] => (+++)
-     *     Top CCW   : ta(--+) -> tb(+-+) -> tc(+++) -> td(-++)
-     *     Bottom CCW: ba(---) -> bb(+--) -> bc(++-) -> bd(-+-)
-     */
-    bool ta, tb, tc, td;
-    bool ba, bb, bc, bd;
-};
+    class Cube
+    {
+    public:
+        Cube() {}
+        ~Cube() {}
+
+        void init(
+            const geometry_msgs::Point &anchor,
+            const double &width,
+            const unsigned char &eight_iks)
+        {
+            anchor_ = anchor;
+            width_ = width;
+            eight_iks_ = eight_iks;
+        }
+
+        geometry_msgs::Point getAnchor() const { return anchor_; }
+        double getWidth() const { return width_; }
+        unsigned char getEightIks() const { return eight_iks_; }
+
+        // bool operator<(const Cube &other) const
+        // {
+        //     return (width_ < other.getWidth()) &;
+        // }
+
+        bool isUseful() const
+        {
+            // 0xFF: Every corner has a solution.
+            // 0x00: Every corner has no solution.
+            // return (eight_iks_ > 0x00) && (eight_iks_ < 0xFF);
+            return (eight_iks_) && (eight_iks_ < 0xFF);
+        }
+
+        // Split without if statements (for optimization)
+        void split(
+            std::vector<Cube> &openlist,
+            int &top,
+            const robot_state::RobotStatePtr &kinematic_state,
+            const robot_model::JointModelGroup *joint_model_group)
+        {
+            // Backup this cube to prevent data conflict.
+            geometry_msgs::Point this_anchor(anchor_);
+            double this_width(width_);
+            unsigned char this_eight_iks(eight_iks_);
+
+            /**
+             * 27 IK checkpoints (0: middle point)
+             * { ba(---), (0--), bb(+--),  (-0-), (00-), (+0-),  bd(-+-), (0+-), bc(++-),  // 012 345 678
+             *     (--0), (0-0),   (+-0),  (-00), (000), (+00),    (-+0), (0+0),   (++0),  // 9*1 234 567
+             *   ta(--+), (0-+), tb(+-+),  (-0+), (00+), (+0+),  td(-++), (0++), tc(+++) } // 89* 123 456
+             * ___________________________________________________
+             * { ba, bb, bc, bd, ta, tb, tc, td } => Already known
+             */
+            std::bitset<27> checkpoints(0);
+            // 8 Knowns
+            checkpoints[0] = this_eight_iks & 0x80;  // ba, 0x80, BOTTOM_RIGHT_BACK
+            checkpoints[2] = this_eight_iks & 0x40;  // bb, 0x40, BOTTOM_RIGHT_FRONT
+            checkpoints[6] = this_eight_iks & 0x20;  // bc, 0x20, BOTTOM_LEFT_FRONT
+            checkpoints[8] = this_eight_iks & 0x10;  // bd, 0x10, BOTTOM_LEFT_BACK
+            checkpoints[18] = this_eight_iks & 0x08; // ta, 0x08, TOP_RIGHT_BACK
+            checkpoints[20] = this_eight_iks & 0x04; // tb, 0x04, TOP_RIGHT_FRONT
+            checkpoints[24] = this_eight_iks & 0x02; // tc, 0x02, TOP_LEFT_FRONT
+            checkpoints[26] = this_eight_iks & 0x01; // td, 0x01, TOP_LEFT_BACK
+            // 19 Unkowns
+            const double half_width = this_width / 2.0;
+            geometry_msgs::Pose eef;
+            eef.position.z = this_anchor.z; // bottom
+            eef.position.y = this_anchor.y;
+            eef.position.x = this_anchor.x + half_width;
+            checkpoints[1] = checkIK(eef, kinematic_state, joint_model_group);
+            eef.position.y = this_anchor.y + half_width;
+            eef.position.x = this_anchor.x;
+            checkpoints[3] = checkIK(eef, kinematic_state, joint_model_group);
+            eef.position.x += half_width;
+            checkpoints[4] = checkIK(eef, kinematic_state, joint_model_group);
+            eef.position.x += half_width;
+            checkpoints[5] = checkIK(eef, kinematic_state, joint_model_group);
+            eef.position.y += half_width;
+            eef.position.x -= half_width;
+            checkpoints[7] = checkIK(eef, kinematic_state, joint_model_group);
+            eef.position.z += half_width; // middle
+            eef.position.y = this_anchor.y;
+            eef.position.x = this_anchor.x;
+            checkpoints[9] = checkIK(eef, kinematic_state, joint_model_group);
+            eef.position.x += half_width;
+            checkpoints[10] = checkIK(eef, kinematic_state, joint_model_group);
+            eef.position.x += half_width;
+            checkpoints[11] = checkIK(eef, kinematic_state, joint_model_group);
+            eef.position.y += half_width;
+            eef.position.x = this_anchor.x;
+            checkpoints[12] = checkIK(eef, kinematic_state, joint_model_group);
+            eef.position.x += half_width;
+            checkpoints[13] = checkIK(eef, kinematic_state, joint_model_group);
+            eef.position.x += half_width;
+            checkpoints[14] = checkIK(eef, kinematic_state, joint_model_group);
+            eef.position.y += half_width;
+            eef.position.x = this_anchor.x;
+            checkpoints[15] = checkIK(eef, kinematic_state, joint_model_group);
+            eef.position.x += half_width;
+            checkpoints[16] = checkIK(eef, kinematic_state, joint_model_group);
+            eef.position.x += half_width;
+            checkpoints[17] = checkIK(eef, kinematic_state, joint_model_group);
+            eef.position.z += half_width; // top
+            eef.position.y = this_anchor.y;
+            eef.position.x = this_anchor.x + half_width;
+            checkpoints[19] = checkIK(eef, kinematic_state, joint_model_group);
+            eef.position.y += half_width;
+            eef.position.x = this_anchor.x;
+            checkpoints[21] = checkIK(eef, kinematic_state, joint_model_group);
+            eef.position.x += half_width;
+            checkpoints[22] = checkIK(eef, kinematic_state, joint_model_group);
+            eef.position.x += half_width;
+            checkpoints[23] = checkIK(eef, kinematic_state, joint_model_group);
+            eef.position.y += half_width;
+            eef.position.x -= half_width;
+            checkpoints[25] = checkIK(eef, kinematic_state, joint_model_group);
+
+            // Push 8 cubes into the openlist
+            top++; // ba-side
+            geometry_msgs::Point new_anchor = this_anchor;
+            openlist[top].init(new_anchor, half_width, makeEightIKs(checkpoints, 0, 1, 4, 3, 9, 10, 13, 12));
+            top++; // bb-side
+            new_anchor.x += half_width;
+            openlist[top].init(new_anchor, half_width, makeEightIKs(checkpoints, 1, 2, 5, 4, 10, 11, 14, 13));
+            top++; // bc-side
+            new_anchor.y += half_width;
+            openlist[top].init(new_anchor, half_width, makeEightIKs(checkpoints, 4, 5, 8, 7, 13, 14, 17, 16));
+            top++; // bd-side
+            new_anchor.x -= half_width;
+            openlist[top].init(new_anchor, half_width, makeEightIKs(checkpoints, 3, 4, 7, 6, 12, 13, 16, 15));
+            top++; // td-side
+            new_anchor.z += half_width;
+            openlist[top].init(new_anchor, half_width, makeEightIKs(checkpoints, 12, 13, 16, 15, 21, 22, 25, 24));
+            top++; // tc-side
+            new_anchor.x += half_width;
+            openlist[top].init(new_anchor, half_width, makeEightIKs(checkpoints, 13, 14, 17, 16, 22, 23, 26, 25));
+            top++; // tb-side
+            new_anchor.y -= half_width;
+            openlist[top].init(new_anchor, half_width, makeEightIKs(checkpoints, 10, 11, 14, 13, 19, 20, 23, 22));
+            top++; // ta-side
+            new_anchor.x -= half_width;
+            openlist[top].init(new_anchor, half_width, makeEightIKs(checkpoints, 9, 10, 13, 12, 18, 19, 22, 21));
+        }
+
+        // void march(
+        //     const moveit_visual_tools::MoveItVisualTools& visual_tools,
+        //     const robot_state::RobotStatePtr& kinematic_state,
+        //     const robot_model::JointModelGroup *joint_model_group) const
+        // {
+        //     // // 8 Knowns
+        //     // checkpoints[0] = this_eight_iks & 0x80;  // ba, 0x80, BOTTOM_RIGHT_BACK
+        //     // checkpoints[2] = this_eight_iks & 0x40;  // bb, 0x40, BOTTOM_RIGHT_FRONT
+        //     // checkpoints[6] = this_eight_iks & 0x20;  // bc, 0x20, BOTTOM_LEFT_FRONT
+        //     // checkpoints[8] = this_eight_iks & 0x10;  // bd, 0x10, BOTTOM_LEFT_BACK
+        //     // checkpoints[18] = this_eight_iks & 0x08; // ta, 0x08, TOP_RIGHT_BACK
+        //     // checkpoints[20] = this_eight_iks & 0x04; // tb, 0x04, TOP_RIGHT_FRONT
+        //     // checkpoints[24] = this_eight_iks & 0x02; // tc, 0x02, TOP_LEFT_FRONT
+        //     // checkpoints[26] = this_eight_iks & 0x01; // td, 0x01, TOP_LEFT_BACK
+
+        //     const double half_width = this_width / 2.0;
+        //     geometry_msgs::Pose eef;
+        //     eef.position.z = this_anchor.z; // bottom
+        //     eef.position.y = this_anchor.y;
+        //     eef.position.x = this_anchor.x + half_width;
+        //     checkpoints[1] = checkIK(eef, kinematic_state, joint_model_group);
+        // }
+
+    private:
+        geometry_msgs::Point anchor_; // The position of ba corner
+        double width_;
+        /**
+         * IK results for each corner. true == solution found.
+         * Cube 8 division order:
+         *     [+x: foward, +y: left, +z: up] => (+++)
+         *     Bottom CCW : ba(---) -> bb(+--) -> bc(++-) -> bd(-+-)
+         *     Top CCW    : ta(--+) -> tb(+-+) -> tc(+++) -> td(-++)
+         * eight_iks_ == 0b {ba bb bc bd} {ta tb tc td}
+         */
+        unsigned char eight_iks_;
+    };
+
+    void printDebugInfo(const Cube* c)
+    {
+        ROS_INFO_STREAM("Anchor: \n"
+                        << c->getAnchor()
+                        << "\nWidth: " << c->getWidth()
+                        << "\nEight IKs: " << std::bitset<8>(c->getEightIks())
+                        << "\nIs useful: " << (c->isUseful() ? "true" : "false"));
+    }
+}
 
 int main(int argc, char **argv)
 {
@@ -95,21 +297,12 @@ int main(int argc, char **argv)
     moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
     robot_state::RobotStatePtr kinematic_state(move_group.getCurrentState());
     const robot_state::JointModelGroup *joint_model_group = kinematic_state->getJointModelGroup(planning_group);
-
-    // Search space
-    // double x_min = -2.0;
-    // double y_min = -2.0;
-    // double z_min = -2.0;
-    // double x_max = 2.0;
-    // double y_max = 2.0;
-    // double z_max = 2.0;
-    // move_group.setWorkspace(x_min, y_min, z_min, x_max, y_max, z_max);
+    move_group.setWorkspace(-2.0, -2.0, -2.0, 2.0, 2.0, 2.0); // Search space
 
     // Set a rosParam for the KDL Kinematics Plugin
     const std::string position_only_ik_param_name =
         "/robot_description_kinematics/" + planning_group + "/position_only_ik";
     nh.setParam(position_only_ik_param_name, true);
-
     ROS_INFO("Waiting for the param to be set");
     bool position_only = false;
     while (!position_only)
@@ -134,51 +327,157 @@ int main(int argc, char **argv)
     ROS_INFO_STREAM("Initial eef pose (zero_pose):\n"
                     << zero_pose);
 
-    /**
-     * Octree + Marching squares
-     */
-    zero_pose.position.z += 0.3;
-    calcIK(zero_pose, kinematic_state, joint_model_group, joint_values);
-    for (auto &jv : joint_values)
-        ROS_INFO_STREAM("IK solution1: " << jv);
+    /**********************************
+     * MAIN ALGORITHM
+     **********************************/
+    // Cube width
+    // const double raw_resolution = 0.32;  // BFS
+    // const double high_resolution = 0.8;  // Octree
 
-    /***************
-     * Octree
-     ***************/
-    const double resolution = 0.1; // Minimum cube width
-    std::vector<Cube> openlist(128, Cube());
-    std::size_t top = 0; // Top index of the openlist
+    const double resolution = 0.1;  // Octree
+    const double initial_cube_width = 1.5;  // Octree
+
+    // [ STEP 1 ] BFS
+    // ^^^^^^^^^^^^^^
+
+
+
+    std::vector<Octree::Cube> openlist(128, Octree::Cube()); // Last-in first-out
+
+    // Visualization
+    const std::string base_frame = move_group.getPlanningFrame();
+    ROS_INFO_STREAM("Base frame: " << base_frame);
+    moveit_visual_tools::MoveItVisualTools visual_tools(base_frame);
+    visual_tools.deleteAllMarkers();
+    visual_tools.loadRemoteControl();
+    visual_tools.setAlpha(0.05); // 0 is invisible
+    visual_tools.enableBatchPublishing();
+    std::size_t marker_count = 0;
+
+    /**
+     * Cube 8 division order:
+     *     [+x: foward, +y: left, +z: up] => (+++)
+     *     Bottom CCW : ba(---) -> bb(+--) -> bc(++-) -> bd(-+-)
+     *     Top CCW    : ta(--+) -> tb(+-+) -> tc(+++) -> td(-++)
+     */
+    // Full cube anchor
+    geometry_msgs::Point basis_anchor(zero_pose.position);
+    basis_anchor.x -= initial_cube_width;
+    basis_anchor.y -= initial_cube_width;
+    basis_anchor.z -= initial_cube_width;
+
+// Full cube
+    int top = 0;  // can be negative
+    openlist[top].init(basis_anchor, initial_cube_width * 2.0, 0x00);
 
     // Initialize the openlist
-    double initial_width = 2.0;
-    openlist.at(top).
+    Octree::Cube *root = &openlist[top];
+    top--;
+    root->split(openlist, top, kinematic_state, joint_model_group);
+    ROS_INFO_STREAM("Current top: " << top << ", TopCube width: " << openlist[top].getWidth());
 
-        /*
-        openlist = { initial 4 cube }
+    /***************
+     * Pseudo Code
+     * ^^^^^^^^^^^
+     * openlist = { initial 8 cubes }  // Last-in first-out
+     * while (openlist is not empty)
+     * {
+     *     cube = openlist.pop_back()
+     *     if (all 8 cube.vertices have the same checkIK result)
+     *     {
+     *         Ignore it and continue
+     *     }
+     *     else if (cube.width > resolution)
+     *     {
+     *         Split cube into 8 cubes
+     *         openlist.push_back(8 cubes)
+     *     }
+     *     else
+     *     {
+     *         Marching cubes
+     *     }
+     * }
+     ***************/
+    ros::Time start_time = ros::Time::now();
+    while (top >= 0)
+    {
+        // Pop the last cube
+        ROS_INFO_STREAM("Current top: " << top);
+        Octree::Cube *cube = &openlist[top];
+        top--;
 
-        while (openlist has elem)
+        // Debug
+        Octree::printDebugInfo(cube);
+
+        double w_ = cube->getWidth();
+        double hw_ = w_ / 2.0;
+        // geometry_msgs::Pose p1_;
+        // p1_.position = cube->getAnchor();
+        // p1_.orientation.w = 1.0;
+        // // ROS_INFO_STREAM("center_: \n"
+        // //                 << center_);
+        // // Eigen::Affine3d cube_pose_;
+        // // Eigen::fromMsg(center_, cube_pose_);
+        // // ROS_INFO_STREAM("cube_pose_: \n"
+        // //                 << cube_pose_.matrix());
+        // // visual_tools.publishWireframeCuboid(cube_pose_, w_, w_, w_);
+        // visual_tools.publishAxis(center_, rvt::MEDIUM);
+
+        geometry_msgs::Point p1_ = cube->getAnchor();
+        geometry_msgs::Point p2_ = p1_;
+        p2_.x += w_;
+        p2_.y += w_;
+        p2_.z += w_;
+        // visual_tools.publishCuboid(p1_, p2_, rvt::BLUE);
+        // visual_tools.trigger();
+
+        ////////////////
+        // visual_tools.publishCuboid(p1_, p2_, rvt::DARK_GREY);
+
+        if (cube->isUseful())
         {
-            cube = openlist.pop_back()
+            if (cube->getWidth() < resolution)
+            {
+                // Marching cubes
+                visual_tools.publishCuboid(p1_, p2_, rvt::BLUE);
+                // cube->march(visual_tools, kinematic_state, joint_move_gorup);
+                // ROS_INFO_STREAM("-----Marching cubes-----");
+                // ROS_INFO_STREAM("Current Popped idx: " << top + 1 << ", Popped Cube width: " << cube->getWidth());
+                // ROS_INFO_STREAM("Current top: " << top << ", TopCube width: " << openlist[top].getWidth());
 
-            if (8 vertices are same)
-            {
-                continue
-                top -= 1
-            }
-            else if (width > min_width)
-            {
-                split into 8 cubes
-                openlist.push_back(8 cubes)
-                top += 8
+                // // Debug
+                // double w_ = cube->getWidth();
+                // double hw_ = w_ / 2.0;
+                // geometry_msgs::Pose center_;
+                // center_.position = cube->getAnchor();
+                // center_.orientation.w = 1.0;
+                // // ROS_INFO_STREAM("center_: \n"
+                // //                 << center_);
+                // // Eigen::Affine3d cube_pose_;
+                // // Eigen::fromMsg(center_, cube_pose_);
+                // // ROS_INFO_STREAM("cube_pose_: \n"
+                // //                 << cube_pose_.matrix());
+                // // visual_tools.publishWireframeCuboid(cube_pose_, w_, w_, w_);
+                // visual_tools.publishAxis(center_, rvt::SMALL);
+
+                marker_count++;
+                if (marker_count % 100 == 0)
+                {
+                    visual_tools.trigger();
+                }
             }
             else
             {
-                draw marching square
+                // Split cube into 8 cubes
+                // ROS_INFO_STREAM("Will_split Popped idx: " << top + 1 << ", Popped Cube width: " << cube->getWidth());
+                cube->split(openlist, top, kinematic_state, joint_model_group);
+                // ROS_INFO_STREAM("After split top: " << top);
             }
         }
+    }
+    visual_tools.trigger();
+    ROS_INFO_STREAM("===== Execution Time: " << (ros::Time::now() - start_time).toSec() << " sec =====");
 
-        */
-
-        ros::waitForShutdown();
+    ros::waitForShutdown();
     return 0;
 }
