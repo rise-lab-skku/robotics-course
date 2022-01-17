@@ -43,8 +43,8 @@ bool checkIK(
     const robot_model::JointModelGroup *joint_model_group)
 {
     const unsigned int attempts = 10;
-    // 2 msec is enough. ​Usually, 0.02~0.05 msec is required to solve IK.
-    const double timeout = 0.002;
+    // 1 msec enough. ​Usually, 0.02~0.05 msec is required to solve IK.
+    const double timeout = 0.001;
     return kinematic_state->setFromIK(joint_model_group, eef_pose, attempts, timeout);
 }
 
@@ -432,9 +432,10 @@ int main(int argc, char **argv)
      * MAIN ALGORITHM
      **********************************/
     // Cube width
-    const double dfs_resolution = 0.16;  // DFS
-    const double marching_resolution = 0.4;  // Octree
+    const double dfs_resolution = 0.06;  // DFS
+    const double marching_resolution = 0.03;  // Octree
 
+    ros::Duration(1.0).sleep();
     ros::Time step1_start_time = ros::Time::now();
 
     // [ STEP 1 ] DFS
@@ -471,34 +472,34 @@ int main(int argc, char **argv)
                     {
                         dfs_openlist.push_back(child);
                     }
+                    ROS_INFO_STREAM("DFS closedlist.size: " << dfs_closedlist.size());
                 }
-                else
-                {
-                    ROS_WARN("The child is already in the closed list");
-                }
-                ROS_INFO_STREAM("dfs_openlist.size(): " << dfs_openlist.size());
-                ROS_INFO_STREAM("dfs_closedlist size: " << dfs_closedlist.size());
+                // else
+                // {
+                //     ROS_WARN("The child is already in the closed list");
+                // }
+                // ROS_INFO_STREAM("DFS openlist.size: " << dfs_openlist.size() << " / closedlist.size: " << dfs_closedlist.size());
             }
         }
         std::copy(dfs_closedlist.begin(), dfs_closedlist.end(), std::back_inserter(roi));
     }
     ROS_WARN_STREAM("Step 1 complete! Delete all markers");
-    debugPause();
+    // debugPause();
 
     visual_tools.deleteAllMarkers();
     visual_tools.trigger();
-    ros::Duration(1.0).sleep();
+    ros::Duration(0.5).sleep();
     for (const auto& anchor : roi)
     {
         drawCuboidFromAnchor(*anchor, dfs_resolution, visual_tools, rvt::GREEN);
     }
     visual_tools.trigger();
-    debugPause();
+    ros::Duration(2.5).sleep();
+    // debugPause();
 
     visual_tools.deleteAllMarkers();
     visual_tools.trigger();
-    ros::Duration(1.0).sleep();
-    debugPause();
+    ros::Duration(0.5).sleep();
 
     ros::Time step2_start_time = ros::Time::now();
 
@@ -506,6 +507,7 @@ int main(int argc, char **argv)
     // ^^^^^^^^^^^^^^^^^
     std::vector<Octree::Cube> octree_openlist(128, Octree::Cube());
     int top = -1;  // Last-in first-out (top can be negative)
+    int max_top_record = -1;
 
     /***************
      * Pseudo Code
@@ -529,42 +531,47 @@ int main(int argc, char **argv)
      *     }
      * }
      ***************/
-    while ((top >= 0) || (roi.size() > 0))
+    int total_roi_size = roi.size();
+    int remain = total_roi_size;
+    while ((top >= 0) || (remain > 0))
     {
-        ROS_INFO_STREAM("Current top: " << top << " / roi.size: " << roi.size());
+        // max_top_record = (top > max_top_record) ? top : max_top_record;
+        // ROS_INFO_STREAM("Current top: " << top << " (maxTop: " << max_top_record << ") / roi.size: " << roi.size());
         if (top < 0)
         {
             top++;
             octree_openlist[top].init(*roi.back(), dfs_resolution, kinematic_state, joint_model_group);
             roi.pop_back();
+            remain--;
+            if (remain % 128 == 0)
+            {
+                ROS_INFO_STREAM("Remaining roi size: " << remain << " / " << total_roi_size << " ...(( " << (float)(total_roi_size - remain) / total_roi_size * 100 << " % ))");
+            }
         }
 
         // Pop the last cube
         Octree::Cube *cube = &octree_openlist[top];
         top--;
 
-        // Debug
-        Octree::printDebugInfo(cube);
-
+        // Octree::printDebugInfo(cube);
 
         if (cube->isUseful())
         {
-            if (cube->getWidth() < marching_resolution)
-            {
-                // Pseudo marching cubes
-                drawCuboidFromAnchor(cube->getAnchor(), cube->getWidth(), visual_tools, rvt::BLUE);
-                marker_count++;
-                if (marker_count % 64 == 0) { visual_tools.trigger(); }
-            }
-            else
+            if (cube->getWidth() > marching_resolution)
             {
                 // Split cube into 8 cubes
                 // ROS_INFO_STREAM("Will_split Popped idx: " << top + 1 << ", Popped Cube width: " << cube->getWidth());
                 cube->split(octree_openlist, top, kinematic_state, joint_model_group);
                 // ROS_INFO_STREAM("After split top: " << top);
             }
+            else
+            {
+                // Pseudo marching cubes
+                drawCuboidFromAnchor(cube->getAnchor(), cube->getWidth(), visual_tools, rvt::BLUE);
+                marker_count++;
+                if (marker_count % 512 == 0) { visual_tools.trigger(); }
+            }
         }
-        debugPause();
     }
     visual_tools.trigger();
 
