@@ -137,13 +137,12 @@ robots 폴더 내용
       - `roslaunch {ROBOT}_moveit_config demo.launch`
       - `rosrun kinematics_demo ik_linear _robot:={PLANNING_GROUP}`
   - ws_drawing (ws_drawing.cpp)
-    - Implemented for PUma560 and Scara
-    - Demo
+    - Implemention of fast workspace drawing (예: Puma560 2 mins)
       - `roslaunch {ROBOT}_moveit_config demo.launch`
       - `rosrun kinematics_demo ws_drawing _robot:={PLANNING_GROUP}`
 - rosbag_archive
   - [@shinjinjae](https://github.com/shinjinjae)
-  - `rosbag play ***.bag`
+  - `rosbag play ***.bag` (or `rosbag play -l ***.bag`)
   - rosbag_archive 폴더만 다운받는 [링크](https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/rise-lab-skku/robotics-course/tree/main/rosbag_archive)
 
 ## Reference
