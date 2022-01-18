@@ -3,7 +3,7 @@
 #include <sensor_msgs/LaserScan.h>
 #include <nav_msgs/Odometry.h>
 #include "turtle_control/kf.h"
-
+#include <limits>
 class KalmanFilter1D
 {
 public:
@@ -27,6 +27,9 @@ public:
         pub_kf_ = nh.advertise<turtle_control::kf>("kf", 3);
         // 이전 측정 타임스탬프 초기화
         prev_prediction_ = ros::Time(0);
+
+        enable_odom_ = true;
+        enable_scan_ = false;
     }
     //! @brief 기본 파괴자
     ~KalmanFilter1D() {}
@@ -68,6 +71,10 @@ public:
     //! @param[in] msg 구독자가 수신한 odometry 메시지
     void OdometryCallback(const nav_msgs::Odometry::ConstPtr &msg)
     {
+        if (!enable_odom_)
+        {
+            return;
+        }
         // 첫 번째 odometry에서 마지막 측정의 타임스탬프를 저장 후 아무것도 하지 않음.
         // 이동한 거리를 측정하려면 두 개의 시점이 필요하다.
         if (prev_prediction_ == ros::Time(0))
@@ -79,28 +86,39 @@ public:
         const float &dt = (msg->header.stamp - prev_prediction_).toSec();
         // x축으로 이동한 거리
         float u = msg->twist.twist.linear.x * dt;
-        // 이동 후 x의 공분산 증분.
-        float q = 0.0001;
+        // 이동 후 x의 공분산 증분. 1mm 의 표준편차가 있을 것으로 가정함.
+        float q = 0.0000001;
 
         Predict(u, q);
         // 타임스탬프 업데이트
         prev_prediction_ = msg->header.stamp;
+        enable_odom_ = false;
+        enable_scan_ = true;
     }
     //! @brief laser scan callback
     //!
     //! @param[in] msg 구독자가 수신한 laser scan 메시지
     void LaserScanCallback(const sensor_msgs::LaserScan::ConstPtr &msg)
     {
+        if (!enable_scan_)
+        {
+            return;
+        }
         // 측정할 물체의 roi를 박스로 설정한다.
         const float &roi_x_min = 0.10;  // x축 최소
         const float &roi_x_max = 1.0;   // x축 최대
-        const float &roi_y_min = -0.40; // y축 최소
-        const float &roi_y_max = 0.40;  // y축 최대
+        const float &roi_y_min = -0.10; // y축 최소
+        const float &roi_y_max = 0.10;  // y축 최대
 
         // 측정한 물체의 laser scan의 포인트들의 x를 통계낸다.
         float x_sum = 0;        // 합
         float x_sq_sum = 0;     // 제곱의 합
         unsigned int count = 0; // 통계낸 x의 개수
+
+        // range 의 minimum. 초기화는 float의 최대임.
+        float r_min = std::numeric_limits<float>::max();
+        // roi 에서 점을 찾았는지 여부
+        bool r_detected = false;
 
         // laser scan은 z축 기준으로 회전하면서 x축부터 angle이 0 radian으로 시작, 반시계로 돌아 한바퀴 돌면 2 pi radian이 된다.
         float ang = msg->angle_min;
@@ -115,22 +133,21 @@ public:
             {
                 continue;
             }
-            // 포인트의 x의 통계를 업데이트
-            x_sum += x;                  // x의 합
-            x_sq_sum += x*x;               // x 제곱의 합
-            count += 1;                  // 개수 1 증가
-            ang += msg->angle_increment; // 다음 angle로 업데이트
+            r_detected = true;             // detected flag 세움
+            r_min = r < r_min ? r : r_min; // minimum 업데이트
+            ang += msg->angle_increment;   // 다음 angle로 업데이트
         }
-        // 측정이 이루어지지 않은 것. devide by zero 회피
-        if (count == 0)
+        // 측정이 이루어지지 않은 것. 건너뛴다.
+        if (!r_detected)
         {
             return;
         }
-        // 통계를 마무리 한다.
-        const float &x_mean = x_sum / count;                     //x의 평균
-        const float &z = 1.0 - x_mean;                           // 물체는 원래 로봇보다 1m 앞에 있었다. 따라서 1m 에서 물체까지의 거리를 빼면 로봇의 현재 위치가 된다.
-        const float &z_var = x_sq_sum / count - x_mean * x_mean; // 제곱의 평균 - 평균의 제곱 = 분산. 1-x 의 분산은 x 의 분산과 동일함.
         // 칼만필터 업데이트
+        const float &z = 0.95 - r_min; // 좌표변환.
+        // 거리에 따라 공분산을 다르게 적용.
+        // 센서데이터가 z <0.35m 범위에서 약 0.1m 오차가 존재함.
+        // 0.35m 밖에서 실험적으로 측정된 노이즈 공분산은 0.000014 m^2
+        const float &z_var = z < 0.35 ? 0.01 : 0.000014;
         Update(z, z_var);
         // 화면에 출력
         ROS_INFO("x_kf: %f, x_odom: %f, x_sensor: %f, x_sensor_var: %f", x_kf_, x_odom_, z, z_var);
@@ -141,12 +158,18 @@ public:
         kf_msg.x_sensor = z;
         kf_msg.x_sensor_var = z_var;
         pub_kf_.publish(kf_msg);
+
+        enable_odom_ = true;
+        enable_scan_ = false;
     }
 
 private:
-    float x_kf_;  // 칼만 필터의 현재 위치
-    float x_odom_;  // odometry로 부터 얻은 위치
-    float p_;  // 칼만 필터의 현재 분산
+    float x_kf_;   // 칼만 필터의 현재 위치
+    float x_odom_; // odometry로 부터 얻은 위치
+    float p_;      // 칼만 필터의 현재 분산
+
+    bool enable_odom_;
+    bool enable_scan_;
     ros::Subscriber sub_odom_;
     ros::Subscriber sub_scan_;
     ros::Time prev_prediction_;
@@ -160,7 +183,8 @@ int main(int argc, char *argv[])
     // 노드 핸들을 private namespace로 초기화
     ros::NodeHandle nh("~");
     // 칼만필터 생성
-    KalmanFilter1D kf(0.10847, 0.05);
+    // KalmanFilter1D kf(0.10847, 0.05);
+    KalmanFilter1D kf(0.0, 0.000025);
     // 칼만필터 초기화
     kf.Init(nh);
     // 콜백 작동 시작

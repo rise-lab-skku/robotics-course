@@ -142,6 +142,10 @@ add_executable(turtle_localization
   src/turtle_localization.cpp
 )
 
+add_executable(turtle_ma
+  src/sensor_model.cpp
+)
+
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -159,7 +163,9 @@ target_link_libraries(turtle_control
 target_link_libraries(turtle_localization
   ${catkin_LIBRARIES}
 )
-
+target_link_libraries(turtle_ma
+  ${catkin_LIBRARIES}
+)
 #############
 ## Install ##
 #############
