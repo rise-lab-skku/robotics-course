@@ -377,19 +377,12 @@ int main(int argc, char **argv)
         ROS_ERROR_STREAM_NAMED(LOGNAME, "No planning group specified");
         return 1;
     }
-    if (planning_group.compare("rrr") == 0)
-    {
-        ROS_WARN_STREAM_NAMED(LOGNAME, "Planning group rrr is not supported. Due to the 2D workspace. This ws_drawing is designed for the 3D workspace.");
-        return 1;
-    }
-
-    // Moveit setup
-    moveit::planning_interface::MoveGroupInterface move_group(planning_group);
-    moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
-    robot_state::RobotStatePtr kinematic_state(move_group.getCurrentState());
-    const robot_state::JointModelGroup *joint_model_group = kinematic_state->getJointModelGroup(planning_group);
-    move_group.setWorkspace(-2.0, -2.0, -2.0, 2.0, 2.0, 2.0); // Search space
-
+    // if (planning_group.compare("rrr") == 0)
+    // {
+    //     ROS_WARN_STREAM_NAMED(LOGNAME, "Planning group rrr is not supported. Due to the 2D workspace. This ws_drawing is designed for the 3D workspace.");
+    //     return 1;
+    // }
+    
     // Set a rosParam for the KDL Kinematics Plugin
     const std::string position_only_ik_param_name =
         "/robot_description_kinematics/" + planning_group + "/position_only_ik";
@@ -402,6 +395,14 @@ int main(int argc, char **argv)
         ros::Duration(0.1).sleep();
     }
     ROS_INFO("Param setting complete!: position_only_ik = %d", position_only);
+
+    // Moveit setup
+    moveit::planning_interface::MoveGroupInterface move_group(planning_group);
+    moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
+    robot_state::RobotStatePtr kinematic_state(move_group.getCurrentState());
+    const robot_state::JointModelGroup *joint_model_group = kinematic_state->getJointModelGroup(planning_group);
+    move_group.setWorkspace(-2.0, -2.0, -2.0, 2.0, 2.0, 2.0); // Search space
+
 
     // Print some info
     ROS_INFO_STREAM("      Joint tolerance: " << move_group.getGoalJointTolerance());
