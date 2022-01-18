@@ -1,0 +1,9 @@
+<launch>
+    <node pkg="simscape_demo" type="gravity_node" name="gravity_node" output="screen">
+        <param name="Kp" value="1.0" type="double" />
+        <param name="Ki" value="0.0" type="double" />
+        <param name="Kd" value="0.0" type="double" />
+        <param name="target_pos" value="3.14" type="double" />
+        <param name="gravity_compensation" value="false" type="bool" />
+    </node>
+</launch>
