@@ -32,6 +32,7 @@ public:
             ros::Time cur_time = ros::Time::now();
             float dt = (cur_time - prev_time).toSec();
             prev_time = cur_time;
+            ROS_INFO_STREAM("Received position: " << last_pos_ << " rad / dt: " << (dt * 1000) << " msec (" << 1.0 / dt << " Hz)" );
 
             // Propotional term
             float error = target_pos - last_pos_;
@@ -68,7 +69,6 @@ private:
     void posCallback(const std_msgs::Float32::ConstPtr &msg)
     {
         last_pos_ = msg->data;
-        ROS_INFO_STREAM("Received position: " << last_pos_ << " rad");
     }
 
     ros::Publisher pub_pid_;
@@ -100,6 +100,10 @@ int main(int argc, char **argv)
     nh.param<float>("Ki", Ki, 0);
     nh.param<float>("Kd", Kd, 0);
     nh.param<bool>("gravity_compensation", gravity_compensation, false);
+    // ROS_INFO_STREAM("Kpid: " << Kp << " "<< Ki << " "<< Kd);
+    // ROS_INFO_STREAM("pos: " << target_pos);
+    // ROS_INFO_STREAM("gravity: " << gravity_compensation);
+    // return 0;
 
     // PID Controller
     PidController controller(nh);

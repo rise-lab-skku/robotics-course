@@ -1,0 +1,7 @@
+<launch>
+    <param name="impact_pub" type="bool" value="false" />
+    <param name="friction_compen_pub" type="bool" value="true" />
+    <param name="gravity_compen_pub" type="bool" value="true" />
+
+    <node name="friction_node" pkg="simscape_demo" type="friction_node" output="screen"/>
+</launch>
