@@ -140,6 +140,9 @@ robots 폴더 내용
     - Implemention of fast workspace drawing (예: Puma560 2 mins)
       - `roslaunch {ROBOT}_moveit_config demo.launch`
       - `rosrun kinematics_demo ws_drawing _robot:={PLANNING_GROUP}`
+  - simple_drawing (simple_drawing.cpp)
+    - `rviz_visual_tools` example
+    - `roscore` -> `rviz` -> `rosrun kinematics_demo simple_drawing`
 - rosbag_archive
   - [@shinjinjae](https://github.com/shinjinjae)
   - `rosbag play ***.bag` (or `rosbag play -l ***.bag`)

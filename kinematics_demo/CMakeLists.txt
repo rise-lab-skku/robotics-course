@@ -61,3 +61,8 @@ target_compile_options(ws_drawing PRIVATE -O3)
 target_link_libraries(ws_drawing
   ${catkin_LIBRARIES}
 )
+
+add_executable(simple_drawing src/simple_drawing.cpp)
+target_link_libraries(simple_drawing
+  ${catkin_LIBRARIES}
+)
