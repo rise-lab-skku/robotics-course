@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="simscape_demo" type="position_node" name="position_node" output="screen" />
+</launch>
