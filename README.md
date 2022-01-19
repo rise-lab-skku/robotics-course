@@ -7,7 +7,7 @@
    3. [(Optional) Vscode Include Path](#optional-vscode-include-path)
 3. [사용되는 로봇 descriptions](#사용되는-로봇-descriptions)
 4. [폴더별 내용](#폴더별-내용)
-5. [Reference](#reference)
+5. [References](#references)
 
 ## Dependencies
 
@@ -144,7 +144,10 @@ robots 폴더 내용
   - [@shinjinjae](https://github.com/shinjinjae)
   - `rosbag play ***.bag` (or `rosbag play -l ***.bag`)
   - rosbag_archive 폴더만 다운받는 [링크](https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/rise-lab-skku/robotics-course/tree/main/rosbag_archive)
+- simscape_demo
+  - [@shinjinjae](https://github.com/shinjinjae), [@ryul1206](https://github.com/ryul1206)
+  - ROS + Matlab + Simscape + Solidworks tutorial
 
-## Reference
+## References
 
 - [MoveIt C++ Doxygen (Melodic)](https://docs.ros.org/en/melodic/api/moveit_core/html/cpp/index.html)

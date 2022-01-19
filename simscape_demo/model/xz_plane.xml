@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<SimscapeMultibodyImportXML version="2.0" xmlns="urn:mathworks:SimscapeMultibody:import" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<Created by="" on="01/11/22||17:21:32" using="Simscape Multibody Link Version 7.4" from="SolidWorks 29.3.0"/>
+<ModelUnits mass="kilogram" length="millimeter"/>
+<DataUnits mass="kilogram" length="meter"/>
+<RootAssembly name="assem_xz_plane" uid="assem_xz_plane" version="115">
+<AssemblyFile name="assem_xz_plane.SLDASM" type="SolidWorks Assembly"/>
+<InstanceTree>
+<Instance name="tcp-1" uid="tcp-1" entityUid="tcp*:*기본">
+<Transform>
+<Rotation>1 0 0 0 0 1 0 -1 0</Rotation>
+<Translation>0.5 0.050000000000000003 0</Translation>
+</Transform>
+</Instance>
+<Instance name="bottom-1" uid="bottom-1" entityUid="bottom*:*기본">
+<Transform>
+<Rotation>0 -1.0000000000000002 0 0 0 1 -1.0000000000000002 0 0</Rotation>
+<Translation>0 0 0</Translation>
+</Transform>
+</Instance>
+<Instance name="top-1" uid="top-1" entityUid="top*:*기본">
+<Transform>
+<Rotation>-1 0 0 0 0 0.99999999999999989 0 1 0</Rotation>
+<Translation>0.5 0.050000000000000003 0</Translation>
+</Transform>
+</Instance>
+</InstanceTree>
+<Constraints>
+<Coincident name="일치1">
+<ConstraintGeometry geomType="plane">
+<InstancePath>
+<Uid>bottom-1</Uid>
+</InstancePath>
+<Position>0 0 0</Position>
+<Axis>0 0 1</Axis>
+</ConstraintGeometry>
+<ConstraintGeometry geomType="plane">
+<InstancePath>
+<Uid>assem_xz_plane</Uid>
+</InstancePath>
+<Position>0 0 0</Position>
+<Axis>0 1 0</Axis>
+</ConstraintGeometry>
+</Coincident>
+<Coincident name="일치2">
+<ConstraintGeometry geomType="plane">
+<InstancePath>
+<Uid>bottom-1</Uid>
+</InstancePath>
+<Position>0 0 0</Position>
+<Axis>0 1.0000000000000002 0</Axis>
+</ConstraintGeometry>
+<ConstraintGeometry geomType="plane">
+<InstancePath>
+<Uid>assem_xz_plane</Uid>
+</InstancePath>
+<Position>0 0 0</Position>
+<Axis>1 0 0</Axis>
+</ConstraintGeometry>
+</Coincident>
+<Coincident name="일치3">
+<ConstraintGeometry geomType="plane">
+<InstancePath>
+<Uid>bottom-1</Uid>
+</InstancePath>
+<Position>0 0 0</Position>
+<Axis>1.0000000000000002 0 0</Axis>
+</ConstraintGeometry>
+<ConstraintGeometry geomType="plane">
+<InstancePath>
+<Uid>assem_xz_plane</Uid>
+</InstancePath>
+<Position>0 0 0</Position>
+<Axis>0 0 1</Axis>
+</ConstraintGeometry>
+</Coincident>
+<Concentric name="동심1">
+<ConstraintGeometry geomType="cylinder">
+<InstancePath>
+<Uid>bottom-1</Uid>
+</InstancePath>
+<Position>0 0 0.10000000000000001</Position>
+<Axis>0 0 -1</Axis>
+</ConstraintGeometry>
+<ConstraintGeometry geomType="cylinder">
+<InstancePath>
+<Uid>top-1</Uid>
+</InstancePath>
+<Position>0.5 0 0.049999999999999996</Position>
+<Axis>0 0 0.99999999999999989</Axis>
+</ConstraintGeometry>
+</Concentric>
+<Coincident name="일치4">
+<ConstraintGeometry geomType="plane">
+<InstancePath>
+<Uid>bottom-1</Uid>
+</InstancePath>
+<Position>0 0 0.050000000000000003</Position>
+<Axis>0 0 1</Axis>
+</ConstraintGeometry>
+<ConstraintGeometry geomType="plane">
+<InstancePath>
+<Uid>top-1</Uid>
+</InstancePath>
+<Position>0 0 0</Position>
+<Axis>0 0 -0.99999999999999989</Axis>
+</ConstraintGeometry>
+</Coincident>
+<Concentric name="동심2">
+<ConstraintGeometry geomType="cylinder">
+<InstancePath>
+<Uid>top-1</Uid>
+</InstancePath>
+<Position>0 0 0.049999999999999996</Position>
+<Axis>0 0 0.99999999999999989</Axis>
+</ConstraintGeometry>
+<ConstraintGeometry geomType="cylinder">
+<InstancePath>
+<Uid>tcp-1</Uid>
+</InstancePath>
+<Position>0 0 0.10000000000000002</Position>
+<Axis>0 0 -1</Axis>
+</ConstraintGeometry>
+</Concentric>
+<Coincident name="일치5">
+<ConstraintGeometry geomType="plane">
+<InstancePath>
+<Uid>top-1</Uid>
+</InstancePath>
+<Position>0 0 0</Position>
+<Axis>0 0 -0.99999999999999989</Axis>
+</ConstraintGeometry>
+<ConstraintGeometry geomType="plane">
+<InstancePath>
+<Uid>tcp-1</Uid>
+</InstancePath>
+<Position>0 0 0</Position>
+<Axis>0 0 -1</Axis>
+</ConstraintGeometry>
+</Coincident>
+</Constraints>
+</RootAssembly>
+<Assemblies>
+</Assemblies>
+<Parts>
+<Part name="bottom" uid="bottom*:*기본" version="136">
+<ModelUnits mass="kilogram" length="millimeter"/>
+<PartFile name="bottom.SLDPRT" type="SolidWorks Part"/>
+<MassProperties>
+<Mass>6.9635461476283949</Mass>
+<CenterOfMass>0 0 0.02525377097102259</CenterOfMass>
+<Inertia>0.078520671554866583 0.078520671554866514 0.15396404786210238 0 0 0</Inertia>
+</MassProperties>
+<GeometryFile name="bottom_기본_sldprt.STEP" type="STEP"/>
+<VisualProperties>
+<Ambient r="0.792156862745098" g="0.81960784313725488" b="0.93333333333333335" a="1"/>
+<Diffuse r="0.792156862745098" g="0.81960784313725488" b="0.93333333333333335" a="1"/>
+<Specular r="0.396078431372549" g="0.40980392156862744" b="0.46666666666666667" a="1"/>
+<Emissive r="0" g="0" b="0" a="1"/>
+<Shininess>0.3125</Shininess>
+</VisualProperties>
+</Part>
+<Part name="tcp" uid="tcp*:*기본" version="151">
+<ModelUnits mass="kilogram" length="millimeter"/>
+<PartFile name="tcp.SLDPRT" type="SolidWorks Part"/>
+<MassProperties>
+<Mass>0.070685834705770348</Mass>
+<CenterOfMass>0 0 0.049999999999999996</CenterOfMass>
+<Inertia>6.2880940457008216e-05 6.2880940457008216e-05 7.9521564043991648e-06 0 0 0</Inertia>
+</MassProperties>
+<GeometryFile name="tcp_기본_sldprt.STEP" type="STEP"/>
+<VisualProperties>
+<Ambient r="0.792156862745098" g="0.81960784313725488" b="0.93333333333333335" a="1"/>
+<Diffuse r="0.792156862745098" g="0.81960784313725488" b="0.93333333333333335" a="1"/>
+<Specular r="0.396078431372549" g="0.40980392156862744" b="0.46666666666666667" a="1"/>
+<Emissive r="0" g="0" b="0" a="1"/>
+<Shininess>0.3125</Shininess>
+</VisualProperties>
+</Part>
+<Part name="top" uid="top*:*기본" version="165">
+<ModelUnits mass="kilogram" length="millimeter"/>
+<PartFile name="top.SLDPRT" type="SolidWorks Part"/>
+<MassProperties>
+<Mass>4.9298328856462392</Mass>
+<CenterOfMass>0.25 0 0.025000000000000001</CenterOfMass>
+<Inertia>0.011164343966706406 0.16114556598626303 0.17025581291728351 0 0 0</Inertia>
+</MassProperties>
+<GeometryFile name="top_기본_sldprt.STEP" type="STEP"/>
+<VisualProperties>
+<Ambient r="0.792156862745098" g="0.81960784313725488" b="0.93333333333333335" a="1"/>
+<Diffuse r="0.792156862745098" g="0.81960784313725488" b="0.93333333333333335" a="1"/>
+<Specular r="0.396078431372549" g="0.40980392156862744" b="0.46666666666666667" a="1"/>
+<Emissive r="0" g="0" b="0" a="1"/>
+<Shininess>0.3125</Shininess>
+</VisualProperties>
+</Part>
+</Parts>
+</SimscapeMultibodyImportXML>
