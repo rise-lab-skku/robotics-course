@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(calimation_demo)
+project(calibration_demo)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -9,12 +9,16 @@ project(calimation_demo)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  roslib
   sensor_msgs
   std_msgs
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
+find_package(yaml-cpp
+  PATHS ~/yaml-cpp/build
+)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -104,8 +108,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES calimation_demo
-  CATKIN_DEPENDS roscpp sensor_msgs std_msgs
+  # LIBRARIES yaml-cpp
+  CATKIN_DEPENDS roscpp roslib sensor_msgs std_msgs
 #  DEPENDS system_lib
 )
 
@@ -148,6 +152,7 @@ add_executable(magnetometer_calibration src/magnetometer_calibration.cpp)
 ## Specify libraries to link a library or executable target against
 target_link_libraries(magnetometer_calibration
   ${catkin_LIBRARIES}
+  yaml-cpp
 )
 
 #############

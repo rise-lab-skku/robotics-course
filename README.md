@@ -17,6 +17,34 @@
   sudo apt install libeigen3-dev
   ```
 
+- yaml-cpp
+  - Build
+
+    ```sh
+    mkdir ~/external_libs; cd ~/external_libs
+    git clone https://github.com/jbeder/yaml-cpp.git
+    mkdir yaml-cpp/build; cd yaml-cpp/build
+    cmake ..
+    ```
+
+  - For you ROS package,
+    - CMakeLists.txt
+
+      ```cmake
+      find_package(yaml-cpp PATHS ~/yaml-cpp/build)
+      ...
+      target_link_libraries({EXECUTABLE_NAME}
+        ${catkin_LIBRARIES}
+        yaml-cpp
+      )
+      ```
+
+    - package.xml
+
+      ```xml
+      <build_depend>yaml-cpp</build_depend>
+      ```
+
 - Moveit
 
   ```sh
