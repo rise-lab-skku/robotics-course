@@ -382,7 +382,13 @@ int main(int argc, char **argv)
     //     ROS_WARN_STREAM_NAMED(LOGNAME, "Planning group rrr is not supported. Due to the 2D workspace. This ws_drawing is designed for the 3D workspace.");
     //     return 1;
     // }
-    
+    double color_alpha;
+    double dfs_resolution;  // DFS
+    double marching_resolution;  // Octree
+    nh.param<double>("color_alpha", color_alpha, 0.2);
+    nh.param<double>("dfs_resolution", dfs_resolution, 0.06);
+    nh.param<double>("marching_resolution", marching_resolution, 0.03);
+
     // Set a rosParam for the KDL Kinematics Plugin
     const std::string position_only_ik_param_name =
         "/robot_description_kinematics/" + planning_group + "/position_only_ik";
@@ -425,7 +431,7 @@ int main(int argc, char **argv)
     moveit_visual_tools::MoveItVisualTools visual_tools(base_frame);
     visual_tools.deleteAllMarkers();
     visual_tools.loadRemoteControl();
-    visual_tools.setAlpha(0.2); // 0 is invisible
+    visual_tools.setAlpha(color_alpha); // 0 is invisible
     visual_tools.enableBatchPublishing();
     std::size_t marker_count = 0;
 
@@ -433,8 +439,8 @@ int main(int argc, char **argv)
      * MAIN ALGORITHM
      **********************************/
     // Cube width
-    const double dfs_resolution = 0.06;  // DFS
-    const double marching_resolution = 0.03;  // Octree
+    // const double dfs_resolution = 0.06;  // DFS
+    // const double marching_resolution = 0.03;  // Octree
 
     ros::Duration(1.0).sleep();
     ros::Time step1_start_time = ros::Time::now();

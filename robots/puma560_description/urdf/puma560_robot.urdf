@@ -38,7 +38,7 @@
     <origin rpy="1.570796325 0 0" xyz="0 0 0.6718"/>
     <axis xyz="0 1 0"/>
     <!-- This is descibed in child frame -->
-    <limit effort="1000.0" lower="-3.14159265" upper="3.14159265" velocity="0"/>
+    <limit effort="1000.0" lower="-2.793" upper="2.793" velocity="0"/>
   </joint>
   <link name="link3">
     <visual>
@@ -55,7 +55,7 @@
     <origin rpy="0 0 0" xyz="0 0 0"/>
     <axis xyz="0 0 1"/>
     <!-- This is descibed in child frame -->
-    <limit effort="1000.0" lower="-1.570796325" upper="1.570796325" velocity="0"/>
+    <limit effort="1000.0" lower="-2.182" upper="2.182" velocity="0"/>
   </joint>
   <link name="link4">
     <visual>
@@ -72,7 +72,7 @@
     <origin rpy="0 0 -1.570796325" xyz="0.4318 -0.0203 0.1501"/>
     <axis xyz="0 0 1"/>
     <!-- This is descibed in child frame -->
-    <limit effort="1000.0" lower="-1.570796325" upper="1.570796325" velocity="0"/>
+    <limit effort="1000.0" lower="-2.356" upper="2.356" velocity="0"/>
   </joint>
   <link name="link5">
     <visual>
@@ -88,7 +88,7 @@
     <child link="link5"/>
     <origin rpy="1.570796325 0 1.570796325" xyz="0 0 0"/>
     <axis xyz="0 0 1"/>
-    <limit effort="1000.0" lower="-1.570796325" upper="1.570796325" velocity="0"/>
+    <limit effort="1000.0" lower="-2.443" upper="2.443" velocity="0"/>
   </joint>
   <link name="link6">
     <visual>
@@ -104,7 +104,7 @@
     <child link="link6"/>
     <origin rpy="1.570796325 0 0" xyz="0 0 0.4331"/>
     <axis xyz="0 0 1"/>
-    <limit effort="1000.0" lower="-1.570796325" upper="1.570796325" velocity="0"/>
+    <limit effort="1000.0" lower="-1.745" upper="1.745" velocity="0"/>
   </joint>
   <link name="link7">
     <visual>
@@ -120,7 +120,6 @@
     <child link="link7"/>
     <origin rpy="-1.570796325 0 0" xyz="0 0.0558 0"/>
     <axis xyz="0 0 1"/>
-    <limit effort="1000.0" lower="-1.570796325" upper="1.570796325" velocity="0"/>
+    <limit effort="1000.0" lower="-4.643" upper="4.643" velocity="0"/>
   </joint>
 </robot>
-

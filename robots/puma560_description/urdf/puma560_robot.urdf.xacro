@@ -41,7 +41,7 @@
       </geometry>
       <origin rpy="0 0 ${M_PI/2}"/>
       <material name="green"/>
-    </visual>  
+    </visual>
   </link>
 
   <link name="link2">
@@ -51,7 +51,7 @@
       </geometry>
       <origin xyz="0 0 -0.1" rpy="0 0 0"/>
       <material name="red"/>
-    </visual>  
+    </visual>
   </link>
 
   <joint name="j1" type="revolute">
@@ -59,9 +59,9 @@
     <child link="link2"/>
     <origin xyz="0 0 ${d_1}" rpy="${M_PI/2} 0 0"/>
     <axis xyz="0 1 0"/> <!-- This is descibed in child frame -->
-    <limit effort="1000.0" lower="${-M_PI}" upper="${M_PI}" velocity="0"/>
+    <limit effort="1000.0" lower="${-M_PI*160/180}" upper="${M_PI*160/180}" velocity="0"/>
   </joint>
-  
+
   <link name="link3">
     <visual>
       <geometry>
@@ -69,7 +69,7 @@
       </geometry>
       <origin xyz="0 0 ${0.0435+d_2}"/>
       <material name="blue"/>
-    </visual>  
+    </visual>
   </link>
 
   <joint name="j2" type="revolute">
@@ -77,7 +77,7 @@
     <child link="link3"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <axis xyz="0 0 1"/> <!-- This is descibed in child frame -->
-    <limit effort="1000.0" lower="${-M_PI/2}" upper="${M_PI/2}" velocity="0"/>
+    <limit effort="1000.0" lower="${-M_PI*125/180}" upper="${M_PI*125/180}" velocity="0"/>
   </joint>
 
   <link name="link4">
@@ -87,7 +87,7 @@
       </geometry>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <material name="green"/>
-    </visual>  
+    </visual>
   </link>
 
   <joint name="j3" type="revolute">
@@ -95,9 +95,9 @@
     <child link="link4"/>
     <origin xyz="${a_2} ${a_3} ${d_2}" rpy="0 0 ${-M_PI/2}"/>
     <axis xyz="0 0 1"/> <!-- This is descibed in child frame -->
-    <limit effort="1000.0" lower="${-M_PI/2}" upper="${M_PI/2}" velocity="0"/>
+    <limit effort="1000.0" lower="${-M_PI*135/180}" upper="${M_PI*135/180}" velocity="0"/>
   </joint>
-  
+
   <link name="link5">
     <visual>
       <geometry>
@@ -105,15 +105,15 @@
       </geometry>
       <origin xyz="0 0 ${d_4-0.071}" rpy="0 0 ${M_PI/2}"/>
       <material name="red"/>
-    </visual>  
-  </link> 
+    </visual>
+  </link>
 
   <joint name="j4" type="revolute">
     <parent link="link4"/>
     <child link="link5"/>
     <origin xyz="0 0 0" rpy="${M_PI/2} 0 ${M_PI/2}"/>
-    <axis xyz="0 0 1"/> 
-    <limit effort="1000.0" lower="${-M_PI/2}" upper="${M_PI/2}" velocity="0"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="1000.0" lower="${-M_PI*140/180}" upper="${M_PI*140/180}" velocity="0"/>
   </joint>
 
   <link name="link6">
@@ -123,15 +123,15 @@
       </geometry>
       <origin xyz="0 0 0" rpy="${M_PI} 0 ${M_PI/2}"/>
       <material name="green"/>
-    </visual>  
-  </link> 
+    </visual>
+  </link>
 
   <joint name="j5" type="revolute">
     <parent link="link5"/>
     <child link="link6"/>
     <origin xyz="0 0 ${d_4}" rpy="${M_PI/2} 0 0"/>
-    <axis xyz="0 0 1"/> 
-    <limit effort="1000.0" lower="${-M_PI/2}" upper="${M_PI/2}" velocity="0"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="1000.0" lower="${-M_PI*100/180}" upper="${M_PI*100/180}" velocity="0"/>
   </joint>
 
   <link name="link7">
@@ -141,15 +141,15 @@
       </geometry>
       <origin xyz="0 0 -0.010" rpy="0 0 0"/>
       <material name="blue"/>
-    </visual>  
-  </link> 
+    </visual>
+  </link>
 
   <joint name="j6" type="revolute">
     <parent link="link6"/>
     <child link="link7"/>
     <origin xyz="0 ${d_6} 0" rpy="${-M_PI/2} 0 0"/>
-    <axis xyz="0 0 1"/> 
-    <limit effort="1000.0" lower="${-M_PI/2}" upper="${M_PI/2}" velocity="0"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="1000.0" lower="${-M_PI*266/180}" upper="${M_PI*266/180}" velocity="0"/>
   </joint>
 
 </robot>
