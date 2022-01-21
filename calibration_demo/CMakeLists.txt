@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   roslib
   sensor_msgs
   std_msgs
+  geometry_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -109,7 +110,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES calibration_demo
-  CATKIN_DEPENDS roscpp roslib sensor_msgs std_msgs
+  CATKIN_DEPENDS roscpp roslib sensor_msgs std_msgs geometry_msgs
 #  DEPENDS system_lib
 )
 
@@ -138,6 +139,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(magnetometer_calibration src/magnetometer_calibration.cpp)
+add_executable(gyroscope src/gyroscope.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -153,6 +155,9 @@ add_executable(magnetometer_calibration src/magnetometer_calibration.cpp)
 target_link_libraries(magnetometer_calibration
   ${catkin_LIBRARIES}
   yaml-cpp
+)
+target_link_libraries(gyroscope
+  ${catkin_LIBRARIES}
 )
 
 #############
