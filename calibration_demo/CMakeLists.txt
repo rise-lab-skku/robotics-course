@@ -4,6 +4,10 @@ project(calibration_demo)
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 
+find_package(yaml-cpp
+  PATHS ~/external_libs/yaml-cpp/build
+)
+
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -16,10 +20,6 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-find_package(yaml-cpp
-  PATHS ~/yaml-cpp/build
-)
-
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -108,7 +108,7 @@ find_package(yaml-cpp
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-  # LIBRARIES yaml-cpp
+#  LIBRARIES calibration_demo
   CATKIN_DEPENDS roscpp roslib sensor_msgs std_msgs
 #  DEPENDS system_lib
 )
@@ -126,7 +126,7 @@ include_directories(
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/calimation_demo.cpp
+#   src/${PROJECT_NAME}/calibration_demo.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -202,7 +202,7 @@ target_link_libraries(magnetometer_calibration
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_calimation_demo.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_calibration_demo.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

@@ -27,11 +27,11 @@
     cmake ..
     ```
 
-  - For you ROS package,
+  - For your ROS package,
     - CMakeLists.txt
 
       ```cmake
-      find_package(yaml-cpp PATHS ~/yaml-cpp/build)
+      find_package(yaml-cpp PATHS ~/external_libs/yaml-cpp/build)
       ...
       target_link_libraries({EXECUTABLE_NAME}
         ${catkin_LIBRARIES}

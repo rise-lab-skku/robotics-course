@@ -7,7 +7,7 @@
 
 // Global variables to make this code easier
 double x_min = std::numeric_limits<double>::max(), y_min = x_min, z_min = x_min;
-double x_max = std::numeric_limits<double>::min(), y_max = x_max, z_max = x_max;
+double x_max = std::numeric_limits<double>::max() * -1.0, y_max = x_max, z_max = x_max;
 
 void magCallback(const sensor_msgs::MagneticField::ConstPtr& msg)
 {
