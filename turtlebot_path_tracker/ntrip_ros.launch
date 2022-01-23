@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+  <node pkg="ntrip_ros" type="ntripclient.py" name="ntrip_ros" output="screen">
+ 	 <param name="rtcm_topic" value="/ublox_gps/rtcm"/>
+ 	 <param name="ntrip_server" value="gnssdata.or.kr:2101"/>
+ 	 <param name="ntrip_user" value="tnwhdgks@g.skku.edu"/>
+ 	 <param name="ntrip_pass" value="gnss"/>
+ 	 <param name="ntrip_stream" value="SUWN-RTCM31"/>
+	 <!-- param name="ntrip_stream" value="INCH-RTCM32" -->
+ 	 <param name="nmea_gga" value="$GPGGA,062804.373,3716.559,N,12703.315,E,1,12,1.0,0.0,M,0.0,M,,*6B"/>
+	 <!-- param name="nmea_gga" value="$$GPGGA,130819.605,3725.187,N,12641.194,E,1,12,1.0,0.0,M,0.0,M,,*6E"-->
+
+  </node>
+</launch>
+
