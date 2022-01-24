@@ -140,6 +140,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(magnetometer_calibration src/magnetometer_calibration.cpp)
 add_executable(gyroscope src/gyroscope.cpp)
+add_executable(inertial_odom_acc_mag src/inertial_odom_acc_mag.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -157,6 +158,9 @@ target_link_libraries(magnetometer_calibration
   yaml-cpp
 )
 target_link_libraries(gyroscope
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(inertial_odom_acc_mag
   ${catkin_LIBRARIES}
 )
 

@@ -24,14 +24,14 @@ void imuCallback(const sensor_msgs::Imu::ConstPtr& msg)
     double z = quat.z();
     double w = quat.w();
     // gyroscope
-    double p = msg->angular_velocity.x;
-    double q = msg->angular_velocity.y;
-    double r = msg->angular_velocity.z;
+    double p = msg->angular_velocity.x *  10.0;
+    double q = msg->angular_velocity.y *  10.0;
+    double r = msg->angular_velocity.z *  10.0;
     // inertial odometry
-    quat.setX(x + half_dt * ((p*y) + (q*z) + (r*w)));
-    quat.setY(y - half_dt * ((p*x) + (-r*z) + (q*w)));
-    quat.setZ(z - half_dt * ((q*x) + (r*y) + (-p*w)));
-    quat.setW(w - half_dt * ((r*x) + (-q*y) + (p*z)));
+    quat.setW(w + half_dt * ((p*x) + (q*y) + (r*z)));
+    quat.setX(x - half_dt * ((p*w) + (-r*y) + (q*z)));
+    quat.setY(y - half_dt * ((q*w) + (r*x) + (-p*z)));
+    quat.setZ(z - half_dt * ((r*w) + (-q*x) + (p*y)));
     quat.normalize();
     ROS_INFO_STREAM("Mag data received. New quaternion: " << quat.x() << ", " << quat.y() << ", " << quat.z() << ", " << quat.w());
 }
@@ -68,13 +68,11 @@ int main(int argc, char **argv)
     while (ros::ok())
     {
         odom_pose.pose.orientation = tf2::toMsg(quat);
+        // Inverse quat
+        odom_pose.pose.orientation.w = -odom_pose.pose.orientation.w;
         odom_pub.publish(odom_pose);
 
-        geometry_msgs::PoseStamped gt_pose_msg;
-        gt_pose_msg.header.frame_id = "map";
-        gt_pose_msg.pose = gt_pose.pose;
-        gt_pose_msg.pose.orientation.w = -gt_pose.pose.orientation.w;
-        gt_pub.publish(gt_pose_msg);
+        gt_pub.publish(gt_pose);
         ros::spinOnce();
         loop_rate.sleep();
     }
