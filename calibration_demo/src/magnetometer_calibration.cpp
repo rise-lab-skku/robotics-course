@@ -42,8 +42,8 @@ int main(int argc, char **argv)
     std::cout << "ROS was shut down." << std::endl;
 
     // Save calibration data to file
-    std::string package_path = ros::package::getPath("calibration_demo");
-    std::string file_path = package_path + "/config/magnetometer_calibration.yaml";
+    const std::string package_path = ros::package::getPath("calibration_demo");
+    const std::string file_path = package_path + "/config/magnetometer_calibration.yaml";
     std::ofstream calibration_file;
     calibration_file.open(file_path);
 

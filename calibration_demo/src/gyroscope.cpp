@@ -24,9 +24,9 @@ void imuCallback(const sensor_msgs::Imu::ConstPtr& msg)
     double z = quat.z();
     double w = quat.w();
     // gyroscope
-    double p = msg->angular_velocity.x *  10.0;
-    double q = msg->angular_velocity.y *  10.0;
-    double r = msg->angular_velocity.z *  10.0;
+    double p = msg->angular_velocity.x; // * 10.0; To see a drift phenomenon of a gyroscope
+    double q = msg->angular_velocity.y; // * 10.0; To see a drift phenomenon of a gyroscope
+    double r = msg->angular_velocity.z; // * 10.0; To see a drift phenomenon of a gyroscope
     // inertial odometry
     quat.setW(w + half_dt * ((p*x) + (q*y) + (r*z)));
     quat.setX(x - half_dt * ((p*w) + (-r*y) + (q*z)));

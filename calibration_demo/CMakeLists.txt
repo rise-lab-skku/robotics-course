@@ -162,6 +162,7 @@ target_link_libraries(gyroscope
 )
 target_link_libraries(inertial_odom_acc_mag
   ${catkin_LIBRARIES}
+  yaml-cpp
 )
 
 #############
