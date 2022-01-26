@@ -1,0 +1,4 @@
+<launch>
+    <node pkg="lidar_roi_example" name="lidar_roi_example" type="lidar_roi_example" output="screen"/>
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find lidar_roi_example)/rviz/roi_rviz.rviz" />
+</launch>
