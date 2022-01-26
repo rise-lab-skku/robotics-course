@@ -165,12 +165,14 @@ robots 폴더 내용
       - `roslaunch {ROBOT}_moveit_config demo.launch`
       - `rosrun kinematics_demo ik_linear _robot:={PLANNING_GROUP}`
   - ws_drawing (ws_drawing.cpp)
-    - Implemention of fast workspace drawing (예: Puma560 2 mins)
+    - Implemention of fast workspace drawing
       - `roslaunch {ROBOT}_moveit_config demo.launch`
       - `rosrun kinematics_demo ws_drawing _robot:={PLANNING_GROUP}`
   - simple_drawing (simple_drawing.cpp)
     - `rviz_visual_tools` example
     - `roscore` -> `rviz` -> `rosrun kinematics_demo simple_drawing`
+  - singularity (singularity.cpp)
+    - An example to explain the singularity
 - rosbag_archive
   - [@shinjinjae](https://github.com/shinjinjae), [@kws1611](https://github.com/rladntjd), [@ssw0536](https://github.com/ssw0536)
   - `rosbag play ***.bag` (or `rosbag play -l ***.bag`)
