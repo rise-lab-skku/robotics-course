@@ -172,7 +172,7 @@ robots 폴더 내용
     - `rviz_visual_tools` example
     - `roscore` -> `rviz` -> `rosrun kinematics_demo simple_drawing`
 - rosbag_archive
-  - [@shinjinjae](https://github.com/shinjinjae), [@kws1611](https://github.com/rladntjd), [@ssw0536](https://github.com/ssw0536)
+  - [@shinjinjae](https://github.com/shinjinjae), [@kws1611](https://github.com/rladntjd), [@ssw0536](https://github.com/ssw0536), [@jiyou384](https://github.com/jiyou384)
   - `rosbag play ***.bag` (or `rosbag play -l ***.bag`)
   - rosbag_archive 폴더만 다운받는 [링크](https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/rise-lab-skku/robotics-course/tree/main/rosbag_archive)
 - simscape_demo
@@ -181,6 +181,9 @@ robots 폴더 내용
 - calibration_demo
   - [@ryul1206](https://github.com/ryul1206), [@kws1611](https://github.com/rladntjd)
   - IMU calibration tutorial
+- lidar_roi_example
+  - [@jiyou384](https://github.com/jiyou384)
+  - Velodyne Puck lidar + PCL library tutorial
 
 ## References
 
