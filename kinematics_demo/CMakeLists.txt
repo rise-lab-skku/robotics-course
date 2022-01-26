@@ -8,6 +8,9 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   trajectory_msgs
+  sensor_msgs
+  interactive_markers
+  visualization_msgs
   moveit_core
   moveit_ros_planning_interface
   moveit_visual_tools
@@ -26,6 +29,9 @@ catkin_package(
   LIBRARIES
   CATKIN_DEPENDS
     trajectory_msgs
+    sensor_msgs
+    interactive_markers
+    visualization_msgs
     moveit_core
     moveit_ros_planning_interface
     moveit_visual_tools
@@ -64,5 +70,10 @@ target_link_libraries(ws_drawing
 
 add_executable(simple_drawing src/simple_drawing.cpp)
 target_link_libraries(simple_drawing
+  ${catkin_LIBRARIES}
+)
+
+add_executable(singularity src/singularity.cpp)
+target_link_libraries(singularity
   ${catkin_LIBRARIES}
 )

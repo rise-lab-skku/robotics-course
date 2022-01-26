@@ -59,8 +59,7 @@ int main(int argc, char **argv)
     spinner.start();
     static const std::string LOGNAME = "ik_linear";
 
-    // rosrun fk_moveit fk_node _robot:=puma_560
-    int robot_type;
+    // rosrun kinematics_dmeo ik_linear _robot:=puma_560
     std::string planning_group;
     if (nh.getParam("robot", planning_group))
     {
