@@ -12,16 +12,13 @@
 #include <tf2_eigen/tf2_eigen.h>
 
 // Global variables to make this code easier
-geometry_msgs::Pose target1;
-geometry_msgs::Pose target2;
-const std::string t1_name = "target1";
-const std::string t2_name = "target2";
+geometry_msgs::Pose eef_target;
 
 /***********************************
  * VISUALIZATION
  ***********************************/
 
-/** References
+/** Code References
  * https://github.com/ros-visualization/visualization_tutorials/blob/indigo-devel/interactive_marker_tutorials/src/simple_marker.cpp
  * http://wiki.ros.org/rviz/Tutorials/Interactive%20Markers%3A%20Basic%20Controls
  * http://docs.ros.org/en/noetic/api/visualization_msgs/html/msg/InteractiveMarkerControl.html
@@ -162,6 +159,50 @@ void calcFK(
     pose = Eigen::toMsg(eef_transformation);
 }
 
+/** This method is also called damped least squares method.
+ * Code References
+ * http://docs.ros.org/en/kinetic/api/stomp_moveit/html/namespacestomp__moveit_1_1utils_1_1kinematics.html#a1a46c199beea4b6d10f18f9c709ebdef
+ */
+void calcDampedPseudoInverse(
+    )
+{
+
+}
+//   628 void calculateDampedPseudoInverse(const Eigen::MatrixXd &jacb, Eigen::MatrixXd &jacb_pseudo_inv,
+//   629                                          double eps, double lambda)
+//   630 {
+//   631   using namespace Eigen;
+//   632
+//   633
+//   634   //Calculate A+ (pseudoinverse of A) = V S+ U*, where U* is Hermition of U (just transpose if all values of U are real)
+//   635   //in order to solve Ax=b -> x*=A+ b
+//   636   Eigen::JacobiSVD<MatrixXd> svd(jacb, Eigen::ComputeThinU | Eigen::ComputeThinV);
+//   637   const MatrixXd &U = svd.matrixU();
+//   638   const VectorXd &Sv = svd.singularValues();
+//   639   const MatrixXd &V = svd.matrixV();
+//   640
+//   641   // calculate the reciprocal of Singular-Values
+//   642   // damp inverse with lambda so that inverse doesn't oscillate near solution
+//   643   size_t nSv = Sv.size();
+//   644   VectorXd inv_Sv(nSv);
+//   645   for(size_t i=0; i< nSv; ++i)
+//   646   {
+//   647     if (fabs(Sv(i)) > eps)
+//   648     {
+//   649       inv_Sv(i) = 1/Sv(i);
+//   650     }
+//   651     else
+//   652     {
+//   653       inv_Sv(i) = Sv(i) / (Sv(i)*Sv(i) + lambda*lambda);
+//   654     }
+//   655   }
+//   656
+//   657   jacb_pseudo_inv = V * inv_Sv.asDiagonal() * U.transpose();
+//   658 }
+//   659
+
+// clampMagnitude
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "singularity");
@@ -185,49 +226,76 @@ int main(int argc, char **argv)
     moveit::planning_interface::MoveGroupInterface move_group(planning_group);
     moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
     robot_state::RobotStatePtr kinematic_state(move_group.getCurrentState());
+    const robot_state::LinkModel *eef_link = kinematic_state->getLinkModel(move_group.getEndEffectorLink());
     const robot_state::JointModelGroup *joint_model_group = kinematic_state->getJointModelGroup(planning_group);
 
     move_group.setWorkspace(-2, -2, -0.5, 2, 2, 3);
     const std::string frame_id = move_group.getPlanningFrame();
-    const std::string eef_link = move_group.getEndEffectorLink();
+    const std::string eef_name = move_group.getEndEffectorLink();
     ROS_INFO_STREAM("Using frame_id: " << frame_id);
 
     // Initial end-effector(tool tip center) pose
     geometry_msgs::Pose zero_pose;
     std::vector<double> zero_joints(joint_model_group->getVariableCount(), 0.0);
-    calcFK(zero_joints, kinematic_state, joint_model_group, eef_link, zero_pose);
+    calcFK(zero_joints, kinematic_state, joint_model_group, eef_name, zero_pose);
 
     // Round-trip pose target (rviz interactive markers)
     interactive_markers::InteractiveMarkerServer server("round_trip_targets");
     {
         // Interactive marker for the round-trip pose target
-        geometry_msgs::Pose pose1 = zero_pose;
-        pose1.position.y += 0.5;
-        makeRoundTripMarker(server, t1_name, frame_id, pose1, 0.2);
-        geometry_msgs::Pose pose2 = zero_pose;
-        pose2.position.y -= 0.5;
-        makeRoundTripMarker(server, t2_name, frame_id, pose2, 0.2);
+        geometry_msgs::Pose pose = zero_pose;
+        pose.position.y += 0.5;
+        makeRoundTripMarker(server, "eef_target", frame_id, pose, 0.2);
     }
     server.applyChanges();
-
-
 
     // Fake joint states to fool the MoveIt
     ros::Publisher joint_state_pub =
         nh.advertise<sensor_msgs::JointState>("/move_group/fake_controller_joint_states", 1);
 
-    // Fake joint message
-    sensor_msgs::JointState js_msg;
-    js_msg.header.frame_id = frame_id;
-    js_msg.name = move_group.getJointNames();
-    js_msg.position.resize(js_msg.name.size());
+    // Current joint state (Fake joint message)
+    sensor_msgs::JointState current_joints;
+    current_joints.header.frame_id = frame_id;
+    current_joints.name = move_group.getJointNames();
+    current_joints.position.resize(current_joints.name.size());
+
+    // Round-trip
+    const double linear_velocity
+
 
     ros::Rate rate(3);
     while (ros::ok())
     {
-        // Set joint positions
-        // joint_state_pub.publish(js_msg);
+        // // Test
+        // current_joints.position[1] = 0.1;
 
+        // Update the current joint state
+        kinematic_state->setJointGroupPositions(joint_model_group, current_joints.position);
+
+        /**
+         * @brief  Jacobian with quaternion:
+         * https://docs.ros.org/en/indigo/api/moveit_core/html/robot__state_8cpp_source.html#l01184
+         */
+        const Eigen::Vector3d reference_point_position(0.0, 0.0, 0.0);
+        const bool use_quat_repr = true;
+        Eigen::MatrixXd jacobian;
+        kinematic_state->getJacobian(
+            joint_model_group, eef_link, reference_point_position, jacobian, use_quat_repr);
+        ROS_INFO_STREAM("Jacobian : \n" << jacobian);
+        // jacobian = kinematic_state->getJacobian(joint_model_group);
+        // kinematic_state->getJacobian(
+        //     joint_model_group, eef_link, reference_point_position, jacobian2, false);
+        // ROS_INFO_STREAM("Jacobian 1: \n" << jacobian);
+        // ROS_INFO_STREAM("Jacobian 2: \n" << jacobian2);
+
+
+
+        // TODO: d_error
+
+        // d_theta = damped_pseudo_inverse * d_error
+
+        // Set joint positions
+        // joint_state_pub.publish(current_joints);
         ros::spinOnce();
         rate.sleep();
     }
