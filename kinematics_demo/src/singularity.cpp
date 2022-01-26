@@ -12,7 +12,10 @@
 #include <tf2_eigen/tf2_eigen.h>
 
 // Global variables to make this code easier
-geometry_msgs::Pose eef_target;
+geometry_msgs::Pose eef_target1;
+geometry_msgs::Pose eef_target2;
+const std::string t1_name = "eef_target1";
+const std::string t2_name = "eef_target2";
 
 /***********************************
  * VISUALIZATION
@@ -243,9 +246,12 @@ int main(int argc, char **argv)
     interactive_markers::InteractiveMarkerServer server("round_trip_targets");
     {
         // Interactive marker for the round-trip pose target
-        geometry_msgs::Pose pose = zero_pose;
-        pose.position.y += 0.5;
-        makeRoundTripMarker(server, "eef_target", frame_id, pose, 0.2);
+        geometry_msgs::Pose pose1 = zero_pose;
+        pose1.position.y += 0.5;
+        makeRoundTripMarker(server, "eef_target", frame_id, pose1, 0.2);
+        geometry_msgs::Pose pose2 = zero_pose;
+        pose2.position.y -= 0.5;
+        makeRoundTripMarker(server, "eef_target", frame_id, pose2, 0.2);
     }
     server.applyChanges();
 
@@ -260,7 +266,9 @@ int main(int argc, char **argv)
     current_joints.position.resize(current_joints.name.size());
 
     // Round-trip
-    const double linear_velocity
+    const double max_linear_velocity = 0.03;  // m/sec
+    const double max_quat_angle = 0.01 * (M_PI / 180.0);  // rad
+
 
 
     ros::Rate rate(3);
@@ -273,7 +281,7 @@ int main(int argc, char **argv)
         kinematic_state->setJointGroupPositions(joint_model_group, current_joints.position);
 
         /**
-         * @brief  Jacobian with quaternion:
+         * Jacobian with quaternion:
          * https://docs.ros.org/en/indigo/api/moveit_core/html/robot__state_8cpp_source.html#l01184
          */
         const Eigen::Vector3d reference_point_position(0.0, 0.0, 0.0);
