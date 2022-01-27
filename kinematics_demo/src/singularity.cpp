@@ -43,11 +43,11 @@ void processFeedback(const vmsgs::InteractiveMarkerFeedbackConstPtr &feedback)
         << feedback->pose.orientation.w << ")");
     if (t1_name.compare(feedback->marker_name) == 0)
     {
-        target1 = feedback->pose;
+        eef_target1 = feedback->pose;
     }
     else if (t2_name.compare(feedback->marker_name) == 0)
     {
-        target2 = feedback->pose;
+        eef_target2 = feedback->pose;
     }
 }
 
@@ -247,11 +247,11 @@ int main(int argc, char **argv)
     {
         // Interactive marker for the round-trip pose target
         geometry_msgs::Pose pose1 = zero_pose;
-        pose1.position.y += 0.5;
-        makeRoundTripMarker(server, "eef_target", frame_id, pose1, 0.2);
+        pose1.position.x += 0.5;
+        makeRoundTripMarker(server, t1_name, frame_id, pose1, 0.2);
         geometry_msgs::Pose pose2 = zero_pose;
         pose2.position.y -= 0.5;
-        makeRoundTripMarker(server, "eef_target", frame_id, pose2, 0.2);
+        makeRoundTripMarker(server, t2_name, frame_id, pose2, 0.2);
     }
     server.applyChanges();
 
@@ -266,8 +266,9 @@ int main(int argc, char **argv)
     current_joints.position.resize(current_joints.name.size());
 
     // Round-trip
-    const double max_linear_velocity = 0.03;  // m/sec
-    const double max_quat_angle = 0.01 * (M_PI / 180.0);  // rad
+    const double max_linear_vel = 0.03;  // [m/sec]
+    const double max_dquat_rot_vel = 30.0 * (M_PI / 180.0);  // [rad/sec]
+    geometry_msgs::Pose local_target;
 
 
 
