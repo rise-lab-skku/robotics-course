@@ -28,10 +28,10 @@ void imuCallback(const sensor_msgs::Imu::ConstPtr& msg)
     double q = msg->angular_velocity.y; // * 10.0; To see a drift phenomenon of a gyroscope
     double r = msg->angular_velocity.z; // * 10.0; To see a drift phenomenon of a gyroscope
     // inertial odometry
-    quat.setW(w + half_dt * ((p*x) + (q*y) + (r*z)));
-    quat.setX(x - half_dt * ((p*w) + (-r*y) + (q*z)));
-    quat.setY(y - half_dt * ((q*w) + (r*x) + (-p*z)));
-    quat.setZ(z - half_dt * ((r*w) + (-q*x) + (p*y)));
+    quat.setW(w - half_dt * ((p*x) + (q*y) + (r*z)));
+    quat.setX(x + half_dt * ((p*w) + (r*y) + (-q*z)));
+    quat.setY(y + half_dt * ((q*w) + (-r*x) + (p*z)));
+    quat.setZ(z + half_dt * ((r*w) + (q*x) + (-p*y)));
     quat.normalize();
     ROS_INFO_STREAM("Mag data received. New quaternion: " << quat.x() << ", " << quat.y() << ", " << quat.z() << ", " << quat.w());
 }
@@ -68,8 +68,6 @@ int main(int argc, char **argv)
     while (ros::ok())
     {
         odom_pose.pose.orientation = tf2::toMsg(quat);
-        // Inverse quat
-        odom_pose.pose.orientation.w = -odom_pose.pose.orientation.w;
         odom_pub.publish(odom_pose);
 
         gt_pub.publish(gt_pose);
