@@ -1,6 +1,8 @@
 # robotics-course
 
 1. [Dependencies](#dependencies)
+   1. [Manual Installation](#manual-installation)
+   2. [Installation via `rosdep`](#installation-via-rosdep)
 2. [Getting Started](#getting-started)
    1. [Clone](#clone)
    2. [Build](#build)
@@ -10,6 +12,8 @@
 5. [References](#references)
 
 ## Dependencies
+
+### Manual Installation
 
 - Eigen
 
@@ -45,23 +49,32 @@
       <build_depend>yaml-cpp</build_depend>
       ```
 
-- Moveit
+- Moveit & Visual tools
 
   ```sh
-  sudo apt install ros-melodic-moveit
-  ```
-
-- Visual tools
-
-  ```sh
-  sudo apt install ros-melodic-moveit-visual-tools ros-melodic-rviz-visual-tools
+  sudo apt install ros-melodic-moveit\
+      ros-melodic-moveit-visual-tools\
+      ros-melodic-rviz-visual-tools
   ```
 
 - JointStatePublisher, RobotStatePublisher
 
   ```sh
-  sudo apt install ros-melodic-joint-state-publisher ros-melodic-joint-state-publisher-gui ros-melodic-robot-state-publisher
+  sudo apt install ros-melodic-joint-state-publisher\
+      ros-melodic-joint-state-publisher-gui\
+      ros-melodic-robot-state-publisher
   ```
+
+- PCL (Point Cloud Library)
+
+  ```sh
+  sudo apt install ros-melodic-pcl-conversions\
+      ros-melodic-pcl-ros
+  ```
+
+### Installation via `rosdep`
+
+[http://wiki.ros.org/rosdep](http://wiki.ros.org/rosdep)
 
 ## Getting Started
 
@@ -75,9 +88,12 @@ git clone --recursive https://github.com/rise-lab-skku/robotics-course.git
 
 ### Build
 
-- `catkin_make`를 사용해도 되지만 이것보다는 `catkin build`를 더욱 추천.
-  - 이미 `catkin_make`를 사용하던 workspace에서 `catkin build`로 바꾸려면 build, devel 폴더를 삭제하고 `catkin build`를 시도하면 된다.
-  - `catkin build` 명령어를 찾을 수 없다고 나오는 경우, `sudo apt-get install python-catkin-tools`를 설치하면 된다.
+`catkin_make`를 사용해도 되지만 이것보다는 `catkin build`를 더욱 추천.
+
+- 이미 `catkin_make`를 사용하던 workspace에서 `catkin build`로 바꾸려면 build, devel 폴더를 삭제하고 `catkin build`를 시도하면 된다.
+- `catkin build` 명령어를 찾을 수 없다고 나오는 경우, `sudo apt-get install python-catkin-tools`를 설치하면 된다.
+- 병렬적으로 빌드하려는 경우, `catkin build -j32` (최대 32개의 job을 동시에 빌드)
+- 특정 패키지만 빌드하려는 경우, `catkin build {패키지 이름}`
 
 ### (Optional) Vscode Include Path
 
