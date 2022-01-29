@@ -46,8 +46,8 @@ target_link_libraries(reachable_ws_fk
   ${catkin_LIBRARIES}
 )
 
-# add_executable(ws_drawing src/ws_drawing.cpp)
-# # target_compile_options(ws_drawing PRIVATE -O3)
-# target_link_libraries(ws_drawing
-#   ${catkin_LIBRARIES}
-# )
+add_executable(reachable_ws_ik src/reachable_ws_ik.cpp)
+target_compile_options(reachable_ws_ik PRIVATE -O3)
+target_link_libraries(reachable_ws_ik
+  ${catkin_LIBRARIES}
+)

@@ -1,11 +1,13 @@
 <launch>
     <arg name="robot" default="scara" />
+    <arg name="sleep_time" default="0.1" />
 
     <node pkg="workspace" type="reachable_ws_fk" name="reachable_ws_fk" output="screen">
-        <param name="revolute_resolution_deg" value="18" type="double" />
+        <param name="revolute_resolution_deg" value="36" type="double" />
         <!-- <param name="revolute_resolution_deg" value="45" type="double" /> -->
         <param name="prismatic_resolution_m" value="0.02" type="double" />
         <param name="marker_scale" value="0.01" type="double" />
         <param name="planning_group" value="$(arg robot)" type="string" />
+        <param name="sleep_time" value="$(arg sleep_time)" type="double" />
     </node>
 </launch>

@@ -17,6 +17,9 @@
 
 namespace rvt = rviz_visual_tools;
 
+double roi_y_min = -5.0;
+double roi_y_max = 5.0;
+
 void debugPause()
 {
     // User input
@@ -360,34 +363,22 @@ namespace DFS
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "ws_drawing");
-    ros::NodeHandle nh("/ws_drawing");
+    ros::init(argc, argv, "reachable_ws_ik");
+    ros::NodeHandle nh("/reachable_ws_ik");
     ros::AsyncSpinner spinner(4); // Use 4 threads
     spinner.start();
-    static const std::string LOGNAME = "ws_drawing";
+    static const std::string LOGNAME = "reachable_ws_ik";
 
-    // Get the input arguments
-    std::string planning_group;
-    if (nh.getParam("robot", planning_group))
-    {
-        ROS_INFO_STREAM_NAMED(LOGNAME, "Using planning group: " << planning_group);
-    }
-    else
-    {
-        ROS_ERROR_STREAM_NAMED(LOGNAME, "No planning group specified");
-        return 1;
-    }
-    // if (planning_group.compare("rrr") == 0)
-    // {
-    //     ROS_WARN_STREAM_NAMED(LOGNAME, "Planning group rrr is not supported. Due to the 2D workspace. This ws_drawing is designed for the 3D workspace.");
-    //     return 1;
-    // }
     double color_alpha;
     double dfs_resolution;  // DFS
     double marching_resolution;  // Octree
+    std::string planning_group;
     nh.param<double>("color_alpha", color_alpha, 0.2);
     nh.param<double>("dfs_resolution", dfs_resolution, 0.06);
     nh.param<double>("marching_resolution", marching_resolution, 0.03);
+    nh.param<std::string>("planning_group", planning_group, "scara");
+    nh.param<double>("roi_y_min", roi_y_min, -2.0);
+    nh.param<double>("roi_y_max", roi_y_max, 2.0);
 
     // Set a rosParam for the KDL Kinematics Plugin
     const std::string position_only_ik_param_name =
@@ -562,9 +553,16 @@ int main(int argc, char **argv)
 
         // Octree::printDebugInfo(cube);
 
-        if (cube->isUseful())
+        // Check y-axis roi
+        double cube_min_y = cube->getAnchor().y;
+        double cube_width = cube->getWidth();
+        double cube_max_y = cube_min_y + cube_width;
+        bool cube_not_in_roi = (cube_max_y < roi_y_min) || (cube_min_y > roi_y_max);
+        bool cube_in_roi = !cube_not_in_roi;
+
+        if (cube_in_roi && cube->isUseful())
         {
-            if (cube->getWidth() > marching_resolution)
+            if (cube_width > marching_resolution)
             {
                 // Split cube into 8 cubes
                 // ROS_INFO_STREAM("Will_split Popped idx: " << top + 1 << ", Popped Cube width: " << cube->getWidth());
@@ -574,7 +572,11 @@ int main(int argc, char **argv)
             else
             {
                 // Pseudo marching cubes
-                drawCuboidFromAnchor(cube->getAnchor(), cube->getWidth(), visual_tools, rvt::BLUE);
+                // Check close to y-roi boundary
+                bool close_to_boundary = (cube_min_y < (roi_y_min + marching_resolution)) ||
+                    (cube_max_y > roi_y_max - marching_resolution);
+                rvt::colors color = close_to_boundary ? rvt::YELLOW : rvt::BLUE;
+                drawCuboidFromAnchor(cube->getAnchor(), cube->getWidth(), visual_tools, color);
                 marker_count++;
                 if (marker_count % 512 == 0) { visual_tools.trigger(); }
             }

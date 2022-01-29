@@ -183,10 +183,12 @@ int main(int argc, char **argv)
     double prismatic_resolution_m;
     double marker_scale;
     std::string planning_group;
+    double sleep_time;
     nh.param<double>("revolute_resolution_deg", revolute_resolution_deg_, 30);
     nh.param<double>("prismatic_resolution_m", prismatic_resolution_m, 0.02);
     nh.param<double>("marker_scale", marker_scale, 0.01);
     nh.param<std::string>("planning_group", planning_group, "scara");
+    nh.param<double>("sleep_time", sleep_time, 0.1);
     double revolute_resolution_rad = revolute_resolution_deg_ * M_PI / 180.0;
 
     std::map<robot_state::JointModel::JointType, double> resolution;
@@ -207,11 +209,12 @@ int main(int argc, char **argv)
     const std::string base_link = move_group.getPlanningFrame();
 
     // Visualization
-    rvt::RvizVisualToolsPtr visual_tools = rvt::RvizVisualToolsPtr(
-        new rvt::RvizVisualTools(base_link, "/rviz_visual_tools"));
-    visual_tools->deleteAllMarkers();
-    visual_tools->enableBatchPublishing();
-    visual_tools->setAlpha(0.5);
+    moveit_visual_tools::MoveItVisualTools visual_tools(base_link);
+    visual_tools.deleteAllMarkers();
+    visual_tools.loadRemoteControl();
+    visual_tools.enableBatchPublishing();
+    visual_tools.setAlpha(0.5);
+    std::size_t marker_count = 0;
 
     // Get joint information
     const std::vector<const robot_state::JointModel*> &joint_model_vector =
@@ -233,7 +236,6 @@ int main(int argc, char **argv)
     if (!jt.isAvailable()) { return 1; }
 
     // Find reachable workspace
-    std::size_t count = 0;
     while (jt.workRemains())
     {
         // Get joint values
@@ -245,20 +247,20 @@ int main(int argc, char **argv)
         calcFK(joint_values, kinematic_state, joint_model_group, eef_link, eef_pose);
 
         // Visualization
-        visual_tools->publishSphere(eef_pose, rvt::BLUE, marker_scale);
-        count++;
+        visual_tools.publishSphere(eef_pose, rvt::BLUE, marker_scale);
+        marker_count++;
 
         // Print progress
-        if (count > 100)
+        if (marker_count > 512)
         {
-            visual_tools->trigger();
+            visual_tools.trigger();
             float process = jt.getProgress();
             ROS_INFO_STREAM("Process: " << std::fixed << std::setprecision(3) << process << "%");
-            count = 0;
-            ros::Duration(0.5).sleep();
+            ros::Duration(sleep_time).sleep();
+            marker_count = 0;
         }
     }
-    visual_tools->trigger();
+    visual_tools.trigger();
     ROS_INFO_STREAM("Process: 100%");
     ROS_WARN_STREAM("Reachable workspace found!");
     ros::waitForShutdown();
