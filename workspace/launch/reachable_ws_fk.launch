@@ -1,0 +1,9 @@
+<launch>
+    <arg name="robot" default="scara" />
+
+    <node pkg="workspace" type="reachable_ws_fk" name="reachable_ws_fk" output="screen">
+        <param name="revolute_resolution_deg" value="10" type="double" />
+        <param name="prismatic_resolution_m" value="0.01" type="double" />
+        <param name="planning_group" value="$(arg robot)" type="string" />
+    </node>
+</launch>

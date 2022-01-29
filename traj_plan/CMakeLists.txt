@@ -147,7 +147,7 @@ add_executable(waypoint_pub
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(waypoint_pub traj_plan)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(traj_plan
