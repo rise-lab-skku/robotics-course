@@ -15,57 +15,42 @@
 
 ### Manual Installation
 
-- Eigen
+- Eigen (for Kinematics, Pick_n_place, etc.)
 
   ```sh
   sudo apt install libeigen3-dev
   ```
 
-- yaml-cpp
-  - Build
-
-    ```sh
-    mkdir ~/external_libs; cd ~/external_libs
-    git clone https://github.com/jbeder/yaml-cpp.git
-    mkdir yaml-cpp/build; cd yaml-cpp/build
-    cmake ..
-    ```
-
-  - For your ROS package,
-    - CMakeLists.txt
-
-      ```cmake
-      find_package(yaml-cpp PATHS ~/external_libs/yaml-cpp/build)
-      ...
-      target_link_libraries({EXECUTABLE_NAME}
-        ${catkin_LIBRARIES}
-        yaml-cpp
-      )
-      ```
-
-    - package.xml
-
-      ```xml
-      <build_depend>yaml-cpp</build_depend>
-      ```
-
-- Moveit & Visual tools
+- Moveit and Visual tools (for Kinematics, Workspace, etc.)
 
   ```sh
   sudo apt install ros-melodic-moveit\
       ros-melodic-moveit-visual-tools\
-      ros-melodic-rviz-visual-tools
-  ```
-
-- JointStatePublisher, RobotStatePublisher
-
-  ```sh
-  sudo apt install ros-melodic-joint-state-publisher\
+      ros-melodic-rviz-visual-tools\
+      ros-melodic-joint-state-publisher\
       ros-melodic-joint-state-publisher-gui\
       ros-melodic-robot-state-publisher
   ```
 
-- PCL (Point Cloud Library)
+- yaml-cpp (for IMU tutorial)
+
+  ```sh
+  mkdir ~/external_libs; cd ~/external_libs
+  git clone https://github.com/jbeder/yaml-cpp.git
+  mkdir yaml-cpp/build; cd yaml-cpp/build
+  cmake ..
+  ```
+
+- Controller interface (for OpenBase)
+
+  ```sh
+  sudo apt install ros-melodic-controller-interface\
+      ros-melodic-effort-controllers\
+      ros-melodic-joint-state-controller\
+      ros-melodic-gazebo-msgs
+  ```
+
+- PCL (for Lidar tutorial)
 
   ```sh
   sudo apt install ros-melodic-pcl-conversions\
@@ -137,56 +122,38 @@ robots 폴더 내용
 
 ## 폴더별 내용
 
-- g++/eigen_vs_std_matrix
+- calibration_demo
+  - [@ryul1206](https://github.com/ryul1206), [@kws1611](https://github.com/rladntjd)
+  - IMU calibration tutorial
+- g++/{ Eigen_vs_STL, DH, PoE }
   - [@ryul1206](https://github.com/ryul1206)
-  - Eigen vs STL: Matrix calculation
-- g++/dh
-  - [@ryul1206](https://github.com/ryul1206)
-- g++/poe
-  - [@ryul1206](https://github.com/ryul1206)
-- pick_n_place
-  - [@ryul1206](https://github.com/ryul1206)
-  - (Ref.) [MoveIt C++ Tutorial](https://github.com/ros-planning/moveit_tutorials/blob/melodic-devel/doc/move_group_interface/src/move_group_interface_tutorial.cpp)
-  - Running the demo
-    - `roslaunch pick_n_place demo.launch`
-    - `rosrun pick_n_place my_puma`
-- traj_plan
-  - [@ohilho](https://github.com/ohilho)
-  - Implementation of [cubic spline algorithm from Wikipedia](https://en.wikipedia.org/wiki/Spline_(mathematics)#Algorithm_for_computing_natural_cubic_splines)
-  - traj_plan 폴더만 다운받는 [링크](https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/rise-lab-skku/robotics-course/tree/main/traj_plan)
-- turtle_control
-  - [@ohilho](https://github.com/ohilho), [@ssw0536](https://github.com/ssw0536)
-  - Kalman filter experiments with TurtleBot3
-  - Running the demo
-    - `roslaunch turtle_control demo.launch`
-  - turtle_control/bag 폴더만 다운받는 [링크](https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/rise-lab-skku/robotics-course/tree/main/turtle_control/bag)
 - kinematics_demo
   - [@ryul1206](https://github.com/ryul1206)
-  - fk_node (fk_main.cpp)
-    - Implemented for Puma560 and RRR
+  - fk_node (fk_main.cpp): Implemented for Puma560 and RRR
     - Demo
       - `roslaunch {ROBOT}_moveit_config demo.launch`
       - `rosrun traj_plan traj_plan`
       - `rosrun kinematics_demo fk_node _robot:={PLANNONG_GROUP}`
-  - ik_node (ik_main.cpp)
-    - Implemented for Puma560 and RRR
-      - ![IK demo](./img/ik_2022-01-13_184153.jpg) ![IK demo](./img/ik_rrr_2022-01-14.jpg)
+  - ik_node (ik_main.cpp): Implemented for Puma560 and RRR
+    - ![IK demo](./img/ik_2022-01-13_184153.jpg) ![IK demo](./img/ik_rrr_2022-01-14.jpg)
     - Demo
       - `roslaunch {ROBOT}_moveit_config demo.launch`
       - `rosrun kinematics_demo ik_node _robot:={PLANNIG_GROUP}`
-  - ik_linear (ik_linear_cartesian.cpp)
-    - Implemented for Puma560 and RRR
-      - ![IK demo](./img/ik_linear_2022-01-13_213403.jpg) ![IK demo](./img/ik_rrr_linear_2022-01-14.jpg)
+  - ik_linear (ik_linear_cartesian.cpp): Implemented for Puma560 and RRR
+    - ![IK demo](./img/ik_linear_2022-01-13_213403.jpg) ![IK demo](./img/ik_rrr_linear_2022-01-14.jpg)
     - Demo
       - `roslaunch {ROBOT}_moveit_config demo.launch`
       - `rosrun kinematics_demo ik_linear _robot:={PLANNING_GROUP}`
-  - ws_drawing (ws_drawing.cpp)
-    - Implemention of fast workspace drawing (예: Puma560 2 mins)
-      - `roslaunch {ROBOT}_moveit_config demo.launch`
-      - `rosrun kinematics_demo ws_drawing _robot:={PLANNING_GROUP}`
-  - simple_drawing (simple_drawing.cpp)
-    - `rviz_visual_tools` example
-    - `roscore` -> `rviz` -> `rosrun kinematics_demo simple_drawing`
+- lidar_roi_example
+  - [@jiyou384](https://github.com/jiyou384)
+  - Velodyne Puck lidar + PCL library tutorial
+- OpenBase (submodule URL: https://github.com/rise-lab-skku/OpenBase)
+  - [@HukoOo](https://github.com/HukoOo), [@ryul1206](https://github.com/ryul1206), [@caro33](https://github.com/caro33), [@shinjinjae](https://github.com/shinjinjae)
+- pick_n_place
+  - [@ryul1206](https://github.com/ryul1206) (Reference: [MoveIt C++ Tutorial](https://github.com/ros-planning/moveit_tutorials/blob/melodic-devel/doc/move_group_interface/src/move_group_interface_tutorial.cpp))
+  - Demo
+    - `roslaunch pick_n_place demo.launch`
+    - `rosrun pick_n_place my_puma`
 - rosbag_archive
   - [@shinjinjae](https://github.com/shinjinjae), [@kws1611](https://github.com/rladntjd), [@ssw0536](https://github.com/ssw0536), [@jiyou384](https://github.com/jiyou384)
   - `rosbag play ***.bag` (or `rosbag play -l ***.bag`)
@@ -194,12 +161,18 @@ robots 폴더 내용
 - simscape_demo
   - [@shinjinjae](https://github.com/shinjinjae), [@ryul1206](https://github.com/ryul1206)
   - ROS + Matlab + Simscape + Solidworks tutorial
-- calibration_demo
-  - [@ryul1206](https://github.com/ryul1206), [@kws1611](https://github.com/rladntjd)
-  - IMU calibration tutorial
-- lidar_roi_example
-  - [@jiyou384](https://github.com/jiyou384)
-  - Velodyne Puck lidar + PCL library tutorial
+- traj_plan
+  - [@ohilho](https://github.com/ohilho)
+  - Implementation of [cubic spline algorithm from Wikipedia](https://en.wikipedia.org/wiki/Spline_(mathematics)#Algorithm_for_computing_natural_cubic_splines)
+  - traj_plan 폴더만 다운받는 [링크](https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/rise-lab-skku/robotics-course/tree/main/traj_plan)
+- turtle_control
+  - [@ohilho](https://github.com/ohilho), [@ssw0536](https://github.com/ssw0536)
+  - Kalman filter experiments with TurtleBot3
+  - Demo: `roslaunch turtle_control demo.launch`
+  - turtle_control/bag 폴더만 다운받는 [링크](https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/rise-lab-skku/robotics-course/tree/main/turtle_control/bag)
+- workspace
+  - [@ryul1206](https://github.com/ryul1206)
+  - Workspace drawing tutorial
 
 ## References
 

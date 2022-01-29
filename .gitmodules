@@ -1,3 +1,6 @@
 [submodule "puma560_description"]
 	path = puma560_description
 	url = https://github.com/nimasarli/puma560_description.git
+[submodule "OpenBase"]
+	path = OpenBase
+	url = https://github.com/rise-lab-skku/OpenBase.git
