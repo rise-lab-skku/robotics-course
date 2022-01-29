@@ -23,12 +23,6 @@ void calcFK(
     pose = Eigen::toMsg(eef_transformation);
 }
 
-void prepareSphere(const rvt::RvizVisualToolsPtr &visual_tools, const geometry_msgs::Pose &pose)
-{
-    const double scale = 0.1;
-    visual_tools->publishSphere(pose, rvt::BLUE, scale);
-}
-
 class JointTreversal
 {
 public:
@@ -38,16 +32,62 @@ public:
         joint_model_vector(jmv), resolution(jlims)
     {
         joint_limits.resize(jmv.size());
-        joint_resolution.resize(jmv.size()); // Must be initialized with min.
-
+        joint_resolution.resize(jmv.size());
+        joint_cases_vector.resize(jmv.size(), 0);
         joint_index_vector.resize(jmv.size(), 0);
-        joint_values.resize(jmv.size());     // Must be initialized with min.
-        calcNumTotalCases();
+        joint_values.resize(jmv.size());
+        _calcNumTotalCases();  // Initialized here
     }
     ~JointTreversal()
     {}
 
-    void resetJointValues(const std::size_t start_idx)
+    void moveToNextSample()
+    {
+        // {
+        //     std::stringstream ss;
+        //     ss << "joint_cases_vector: (";
+        //     for (int i = 0; i < joint_cases_vector.size(); i++)
+        //     {
+        //         ss << joint_cases_vector[i] << ", ";
+        //     }
+        //     ss << ")";
+        //     ROS_INFO_STREAM(ss.str());
+        // }
+        // {
+        //     std::stringstream ss;
+        //     ss << "Before Joint index vector: (";
+        //     for (int i = 0; i < joint_index_vector.size(); i++)
+        //     {
+        //         ss << joint_index_vector[i] << ", ";
+        //     }
+        //     ss << ") count: " << count;
+        //     ROS_INFO_STREAM(ss.str());
+        // }
+        _recurseMoveTo(joint_values.size() - 1);
+        count++;
+        // {
+        //     std::stringstream ss;
+        //     ss << " After Joint index vector: (";
+        //     for (int i = 0; i < joint_index_vector.size(); i++)
+        //     {
+        //         ss << joint_index_vector[i] << ", ";
+        //     }
+        //     ss << ") count: " << count <<"\n";
+        //     ROS_INFO_STREAM(ss.str());
+        //     // // Pause for debugging
+        //     // char kk;
+        //     // std::cout << "Press any key to continue...";
+        //     // std::cin >> kk;
+        // }
+    }
+
+    const std::vector<double>& getJointValues() {return joint_values;}
+    bool isAvailable() {return initialized;}
+    bool workRemains() {return count < num_total_cases;}
+    float getProgress() {return 100.0 * ((float)count / (float)num_total_cases);}
+
+private:
+    void _resetJointValues(const std::size_t start_idx)
     {
         for (std::size_t i = start_idx; i < joint_values.size(); i++)
         {
@@ -56,77 +96,64 @@ public:
         }
     }
 
-    void moveToNextSample()
+    void _recurseMoveTo(std::size_t joint_idx)
     {
-        std::size_t joint_idx = joint_values.size() - 1;
         std::size_t sample_idx = joint_index_vector[joint_idx] + 1;
-        double sample_value = joint_values[joint_idx] + joint_resolution[joint_idx];
-        if (sample_value > joint_limits[joint_idx].max_position)
+        if (sample_idx < joint_cases_vector[joint_idx])
         {
-            // sample_value = joint_limits[joint_idx].min_position;
-            // sample_idx = 0;
-            // joint_idx--;
+            _resetJointValues(joint_idx + 1);
+            double sample_value = joint_values[joint_idx] + joint_resolution[joint_idx];
+            joint_values[joint_idx] = (sample_value > joint_limits[joint_idx].max_position) ?
+                joint_limits[joint_idx].max_position : sample_value;
+            joint_index_vector[joint_idx] = sample_idx;
         }
-
-
+        else
+        {
+            if (joint_idx > 0) {_recurseMoveTo(joint_idx - 1);}
+        }
     }
 
-
-    // std::vector<std::vector<double>> joint_values(joint_model_vector.size());
-    // // std::size_t index = 0;
-    // for (const robot_state::JointModel *jm : joint_model_vector)
-    // {
-    //     moveit_msgs::JointLimits jl = jm->getVariableBoundsMsg().at(0);
-    //     if (!jl.has_position_limits)
-    //     {
-    //         ROS_ERROR_STREAM("Joint [ " << jm->getName() << " ] has no position limits");
-    //         return 1;
-    //     }
-    //     // std::vector<double>& jv = joint_values[index];
-    //     // index++;
-    //     // double value = jl.min_position;
-    //     double resol = resolution[jm->getType()];
-    //     // while (value < jl.max_position)
-    //     // {
-    //     //     jv.push_back(value);
-    //     //     value += resol;
-    //     // }
-        // jv.push_back(jl.max_position);
-
-
-    const std::vector<double>& getJointValues() {return joint_values;}
-    bool isAvailable() {return initialized;}
-    bool workRemains() {return count < num_total_cases;}
-    float getProgress() {return 100.0 * ((float)count / (float)num_total_cases);}
-
-private:
-    void calcNumTotalCases()
+    void _calcNumTotalCases()
     {
         std::size_t idx = 0;
         // Number of cases to explore
         unsigned long long num_cases = 1;
+        initialized = true;
         for (const robot_state::JointModel *jm : joint_model_vector)
         {
             moveit_msgs::JointLimits jl = jm->getVariableBoundsMsg().at(0);
             if (!jl.has_position_limits)
             {
-                ROS_ERROR_STREAM("Joint [ " << jm->getName() << " ] has no position limits");
-                initialized = false;
+                ROS_WARN_STREAM("Joint [ " << jm->getName() << " ] has no position limits");
+                if (jm->getType() == robot_state::JointModel::REVOLUTE)
+                {
+                    ROS_WARN_STREAM("but since it is a revolute, set the limit to [-pi, pi]");
+                    jl.min_position = -M_PI;
+                    jl.max_position = M_PI;
+                }
+                else
+                {
+                    ROS_ERROR_STREAM("It is not supported because it is NOT a revolute type.");
+                    initialized = false;
+                }
             }
+
             double resol = resolution.at(jm->getType());
             unsigned long long num_cases_joint =
                 (unsigned long long)std::ceil((jl.max_position - jl.min_position) / resol) + 1;
             num_cases *= num_cases_joint;
             ROS_INFO_STREAM("Joint [ " << jm->getName() << " ] has " << num_cases_joint << " cases");
+
             // Initialization
             joint_limits[idx] = jl;
             joint_resolution[idx] = resol;
+            joint_cases_vector[idx] = num_cases_joint;
             joint_index_vector[idx] = 0;
             joint_values[idx] = jl.min_position;
+            idx++;
         }
         num_total_cases = num_cases;
         ROS_WARN_STREAM("Number of cases to explore: " << num_cases);
-        initialized = true;
     }
 
     const std::vector<const robot_state::JointModel*> joint_model_vector;
@@ -139,6 +166,7 @@ private:
     std::vector<moveit_msgs::JointLimits> joint_limits;
     std::vector<double> joint_resolution;
 
+    std::vector<std::size_t> joint_cases_vector;
     std::vector<std::size_t> joint_index_vector;
     std::vector<double> joint_values;
 };
@@ -146,16 +174,18 @@ private:
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "reachable_ws_fk");
-    ros::NodeHandle nh;
+    ros::NodeHandle nh("/reachable_ws_fk");
     ros::AsyncSpinner spinner(1);
     spinner.start();
 
     // Resolution of the configuration space
     double revolute_resolution_deg_;
     double prismatic_resolution_m;
+    double marker_scale;
     std::string planning_group;
-    nh.param<double>("revolute_resolution_deg", revolute_resolution_deg_, 10);
-    nh.param<double>("prismatic_resolution_m", prismatic_resolution_m, 0.01);
+    nh.param<double>("revolute_resolution_deg", revolute_resolution_deg_, 30);
+    nh.param<double>("prismatic_resolution_m", prismatic_resolution_m, 0.02);
+    nh.param<double>("marker_scale", marker_scale, 0.01);
     nh.param<std::string>("planning_group", planning_group, "scara");
     double revolute_resolution_rad = revolute_resolution_deg_ * M_PI / 180.0;
 
@@ -168,18 +198,20 @@ int main(int argc, char **argv)
         ROS_WARN_STREAM("Joint type " << it->first << " has resolution " << it->second);
     }
 
-    // Visualization
-    rvt::RvizVisualToolsPtr visual_tools = rvt::RvizVisualToolsPtr(
-        new rvt::RvizVisualTools("map", "/rviz_visual_markers"));
-    visual_tools->deleteAllMarkers();
-    visual_tools->setAlpha(0.5);
-
     // Create a MoveGroup
     moveit::planning_interface::MoveGroupInterface move_group(planning_group);
     robot_state::RobotStatePtr kinematic_state(move_group.getCurrentState());
     const robot_state::JointModelGroup *joint_model_group =
         kinematic_state->getJointModelGroup(planning_group);
     const std::string eef_link = move_group.getEndEffectorLink();
+    const std::string base_link = move_group.getPlanningFrame();
+
+    // Visualization
+    rvt::RvizVisualToolsPtr visual_tools = rvt::RvizVisualToolsPtr(
+        new rvt::RvizVisualTools(base_link, "/rviz_visual_tools"));
+    visual_tools->deleteAllMarkers();
+    visual_tools->enableBatchPublishing();
+    visual_tools->setAlpha(0.5);
 
     // Get joint information
     const std::vector<const robot_state::JointModel*> &joint_model_vector =
@@ -201,8 +233,7 @@ int main(int argc, char **argv)
     if (!jt.isAvailable()) { return 1; }
 
     // Find reachable workspace
-    ros::Time check_time = ros::Time::now();
-    double dt = 1.0; // seconds
+    std::size_t count = 0;
     while (jt.workRemains())
     {
         // Get joint values
@@ -214,19 +245,22 @@ int main(int argc, char **argv)
         calcFK(joint_values, kinematic_state, joint_model_group, eef_link, eef_pose);
 
         // Visualization
-        prepareSphere(visual_tools, eef_pose);
+        visual_tools->publishSphere(eef_pose, rvt::BLUE, marker_scale);
+        count++;
 
         // Print progress
-        if ((ros::Time::now() - check_time).toSec() > dt)
+        if (count > 100)
         {
             visual_tools->trigger();
             float process = jt.getProgress();
             ROS_INFO_STREAM("Process: " << std::fixed << std::setprecision(3) << process << "%");
-            check_time = ros::Time::now();
+            count = 0;
+            ros::Duration(0.5).sleep();
         }
     }
     visual_tools->trigger();
-
+    ROS_INFO_STREAM("Process: 100%");
+    ROS_WARN_STREAM("Reachable workspace found!");
     ros::waitForShutdown();
     return 0;
 }
