@@ -1,0 +1,14 @@
+<launch>
+    <arg name="robot" default="scara" />
+    <arg name="y_min" default="-2.0" />
+    <arg name="y_max" default="2.0" />
+
+    <node pkg="workspace" type="reachable_ws_ik" name="reachable_ws_ik" output="screen">
+        <param name="color_alpha" value="0.15" type="double" />
+        <param name="dfs_resolution" value="0.04" type="double" />
+        <param name="marching_resolution" value="0.01" type="double" />
+        <param name="planning_group" value="$(arg robot)" type="string" />
+        <param name="roi_y_min" value="$(arg y_min)" type="double" />
+        <param name="roi_y_max" value="$(arg y_max)" type="double" />
+    </node>
+</launch>

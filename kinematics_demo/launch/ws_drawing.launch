@@ -1,7 +1,0 @@
-<launch>
-    <node pkg="kinematics_demo" type="ws_drawing" name="ws_drawing" output="screen">
-        <param name="color_alpha" value="0.15" type="double" />
-        <param name="dfs_resolution" value="0.04" type="double" />
-        <param name="marching_resolution" value="0.01" type="double" />
-    </node>
-</launch>
