@@ -1,3 +1,5 @@
+#include <limits>
+#include <algorithm>
 #include <iomanip>
 #include <vector>
 #include <ros/ros.h>
@@ -12,6 +14,9 @@
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf/tf.h>
+#include <eigen3/Eigen/Dense>
+
+#include "kinematics_demo/so3.hpp"
 
 // Global variables to make this code easier
 bool is_global_initialized = false;
@@ -163,6 +168,52 @@ namespace visualization
  * KINEMATICS
  ***********************************/
 
+// https://en.cppreference.com/w/cpp/types/numeric_limits/epsilon
+template<class T>
+typename std::enable_if<!std::numeric_limits<T>::is_integer, bool>::type
+    almost_equal(T x, T y, int ulp=2)
+{
+    // the machine epsilon has to be scaled to the magnitude of the values used
+    // and multiplied by the desired precision in ULPs (units in the last place)
+    return std::fabs(x-y) <= std::numeric_limits<T>::epsilon() * std::fabs(x+y) * ulp
+        // unless the result is subnormal
+        || std::fabs(x-y) < std::numeric_limits<T>::min();
+}
+
+// namespace SE3
+// {
+//     /******************************************
+//
+//      ******************************************/
+//     Eigen::VectorXd matLog(const Eigen::Matrix3d& R, const Eigen::Vector3d& p)
+//     {
+//         // Mordern robotics p.105
+//         double trace = R.trace();
+//         double theta = acos((trace - 1) / 2);
+//         Eigen::Vector3d v;
+//         Eigen::Vector3d w_hat;
+//         Eigen::Matrix3d w_vee;
+//         if (almost_equal(theta, 0.0))
+//         {
+//             v = almost_equal(p.norm(), 0.0) ? p : p / p.norm();
+//             w_hat = Eigen::Vector3d::Zero();
+//             // w_vee = hat(w_hat);
+//         }
+//         else if (almost_equal(theta, M_PI))
+//         {
+//             w_hat << R(0, 2), R(1, 2), 1 + R(2, 2);
+//             w_hat /= sqrt( 2 * w_hat(2) );
+//             SO3::vee(w_hat, w_vee);
+//         }
+//         else
+//         {
+//             w_vee = (R - R.transpose()) / (2 * sin(theta));
+//             SO3::hat(w_vee, w_hat);
+//         }
+
+//     }
+// }
+
 namespace kinematics
 {
     void calcFK(
@@ -176,6 +227,15 @@ namespace kinematics
         Eigen::Affine3d eef_transformation = kinematic_state->getGlobalLinkTransform(eef_link);
         pose = Eigen::toMsg(eef_transformation);
     }
+
+    Eigen::Matrix3d getRotationMatrix(const geometry_msgs::Quaternion &q)
+    {
+        Eigen::Quaterniond q_eigen(q.w, q.x, q.y, q.z);
+        Eigen::Matrix3d R = q_eigen.toRotationMatrix();
+        return R;
+    }
+
+
 
     geometry_msgs::Pose dPose(
         const geometry_msgs::Pose &target,
@@ -192,6 +252,34 @@ namespace kinematics
         geometry_msgs::Pose d_pose;
         tf::poseTFToMsg(d_tf, d_pose);
         return d_pose;
+    }
+
+    void calculateDampedPseudoInverseWithoutSVD(
+        const Eigen::MatrixXd &jacb, Eigen::MatrixXd &jacb_pseudo_inv, double eps, double lambda)
+    {
+        // http://www.cs.cmu.edu/~15464-s13/lectures/lecture6/iksurvey.pdf
+        Eigen::MatrixXd jacb_transpose = jacb.transpose();
+        ROS_INFO_STREAM("jacb rows: " << jacb.rows());
+        if (jacb.rows() >= jacb.cols())  // J is tall. left inverse.
+        {
+            // eq(10)
+            Eigen::MatrixXd lhs = (
+                jacb_transpose * jacb +
+                lambda * lambda * Eigen::MatrixXd::Identity(jacb.cols(), jacb.cols()));
+            ROS_WARN_STREAM("left-hand-side: \n" << lhs);
+            ROS_WARN_STREAM("rhs.inverse: \n" << lhs.inverse());
+            jacb_pseudo_inv = lhs.inverse() * jacb_transpose;
+        }
+        else  // J is fat.right inverse.
+        {
+            // eq(11)
+            Eigen::MatrixXd rhs = (
+                jacb * jacb_transpose +
+                lambda * lambda * Eigen::MatrixXd::Identity(jacb.rows(), jacb.rows()));
+            ROS_WARN_STREAM("right-hand-side: \n" << rhs);
+            ROS_WARN_STREAM("rhs.inverse: \n" << rhs.inverse());
+            jacb_pseudo_inv = jacb_transpose * rhs.inverse();
+        }
     }
 
     /** This method is also called damped least squares method.
@@ -403,10 +491,12 @@ int main(int argc, char **argv)
     double marker_scale;
     double dls_eps;
     double dls_lambda;
+    bool debug_;
     nh.param<std::string>("robot", planning_group, "puma_560");
     nh.param<double>("marker_scale", marker_scale, 0.1);
     nh.param<double>("epsilon", dls_eps, 1);
     nh.param<double>("lambda", dls_lambda, 20);
+    nh.param<bool>("debug", debug_, false);
 
     // Setup for MoveIt
     moveit::planning_interface::MoveGroupInterface move_group(planning_group);
@@ -422,8 +512,8 @@ int main(int argc, char **argv)
 
     // Initial end-effector(tool tip center) pose
     geometry_msgs::Pose eef_pose;
-    std::vector<double> zero_joints(joint_model_group->getVariableCount(), 0.0);
-    kinematics::calcFK(zero_joints, kinematic_state, joint_model_group, eef_name, eef_pose);
+    std::vector<double> initial_joints(joint_model_group->getVariableCount(), 0.0);
+    kinematics::calcFK(initial_joints, kinematic_state, joint_model_group, eef_name, eef_pose);
 
     // Round-trip pose target (rviz interactive markers)
     interactive_markers::InteractiveMarkerServer server("round_trip_targets");
@@ -453,7 +543,7 @@ int main(int argc, char **argv)
     sensor_msgs::JointState current_joints;
     current_joints.header.frame_id = frame_id;
     current_joints.name = move_group.getJointNames();
-    current_joints.position.resize(current_joints.name.size(), 0.0);
+    current_joints.position = initial_joints;
 
     // Round-trip
     double max_linear_vel;    // [m/sec]
@@ -470,11 +560,30 @@ int main(int argc, char **argv)
 
     // Main Loop
     const double rad2deg = 180.0 / M_PI;
-    int count = 0;
     ros::Time last_time = ros::Time::now();
+    double dt = 0.0;
+
     ros::Rate rate(512);
     while (ros::ok())
     {
+        /**
+         * Jacobian with quaternion:
+         * https://docs.ros.org/en/indigo/api/moveit_core/html/robot__state_8cpp_source.html#l01184
+         */
+        const Eigen::Vector3d reference_point_position(0.0, 0.0, 0.0);
+        // const bool use_quat_repr = true;
+        const bool use_quat_repr = false;
+        Eigen::MatrixXd jacobian;
+        kinematic_state->getJacobian(
+            joint_model_group, eef_link, reference_point_position, jacobian, use_quat_repr);
+        ROS_INFO_STREAM("Jacobian : \n" << jacobian);
+
+        // Damped pseudo-inverse
+        Eigen::MatrixXd jacb_pseudo_inv;
+        kinematics::calculateDampedPseudoInverse(jacobian, jacb_pseudo_inv, dls_eps, dls_lambda);
+        // kinematics::calculateDampedPseudoInverseWithoutSVD(jacobian, jacb_pseudo_inv, dls_eps, dls_lambda);
+        ROS_INFO_STREAM("Jacobian pseudo inversse : \n" << jacb_pseudo_inv);
+
         // ref_pose from FK
         kinematics::calcFK(
             current_joints.position, kinematic_state, joint_model_group, eef_name, eef_pose);
@@ -494,47 +603,78 @@ int main(int argc, char **argv)
 
         // d_error
         geometry_msgs::Pose error_pose = kinematics::dPose(target_ps.pose, eef_pose);
-        Eigen::VectorXd d_error(7);  // position, quaternion
-        d_error << error_pose.position.x,
-                   error_pose.position.y,
-                   error_pose.position.z,
-                   error_pose.orientation.w,  // w first (since, jacobian_with_quat)
-                   error_pose.orientation.x,
-                   error_pose.orientation.y,
-                   error_pose.orientation.z;
-        Eigen::VectorXd d_error_deg = d_error * rad2deg;
-        ROS_INFO_STREAM("d_error (deg): " << d_error_deg.transpose());
+        if (use_quat_repr)
+        {
+            // BUG!!!!!!!!!!!!!!!!!!!!
+            ROS_ERROR_STREAM("Unit quat is wrong.");
+            return 1;
+            Eigen::VectorXd d_error(7);  // position, quaternion
+            d_error << error_pose.position.x,
+                    error_pose.position.y,
+                    error_pose.position.z,
+                    error_pose.orientation.w,  // w first (since, jacobian_with_quat)
+                    error_pose.orientation.x,
+                    error_pose.orientation.y,
+                    error_pose.orientation.z;
+            ROS_INFO_STREAM("d_error : " << d_error.transpose());
+        }
+        double dx = error_pose.position.x;
+        double dy = error_pose.position.y;
+        double dz = error_pose.position.z;
 
-        /**
-         * Jacobian with quaternion:
-         * https://docs.ros.org/en/indigo/api/moveit_core/html/robot__state_8cpp_source.html#l01184
-         */
-        const Eigen::Vector3d reference_point_position(0.0, 0.0, 0.0);
-        const bool use_quat_repr = true;
-        Eigen::MatrixXd jacobian;
-        kinematic_state->getJacobian(
-            joint_model_group, eef_link, reference_point_position, jacobian, use_quat_repr);
-        // ROS_INFO_STREAM("Jacobian : \n" << jacobian);
+        /********** phi **********/
+        // so3
+        // Get w rotation from quaternion
+        double quat_angle = 2.0 * acos(error_pose.orientation.w);
+        // Rotation axis
+        Eigen::Vector3d axis_k;
+        axis_k << error_pose.orientation.x,
+                  error_pose.orientation.y,
+                  error_pose.orientation.z;
+        axis_k /= sin(quat_angle / 2.0);
+        ROS_INFO_STREAM("Norm of axis_k: " << axis_k.norm());
 
-        // Damped pseudo-inverse
-        Eigen::MatrixXd jacb_pseudo_inv;
-        kinematics::calculateDampedPseudoInverse(jacobian, jacb_pseudo_inv, dls_eps, dls_lambda);
+        // SE3
+        Eigen::Matrix3d Jei =
+            (sin(quat_angle) / quat_angle) * Eigen::Matrix3d::Identity(3, 3);
 
-        // d_theta = damped_pseudo_inverse * d_error
+
+        Eigen::VectorXd d_error; // just for compile
+
+        // twist
+        // Eigen::VectorXd twist(6);
+        // twist << dx /
+
+        // joint_vel = damped_pseudo_inverse * twist
+
+        // Eigen::VectorXd d_theta = jacb_pseudo_inv * d_error;
+        // Eigen::VectorXd d_theta_deg = d_theta * rad2deg;
+        // ROS_INFO_STREAM("d_theta : " << d_theta.transpose());
         Eigen::VectorXd d_theta = jacb_pseudo_inv * d_error;
         Eigen::VectorXd d_theta_deg = d_theta * rad2deg;
-        ROS_INFO_STREAM("d_theta (deg): \n" << d_theta_deg.transpose());
+        ROS_INFO_STREAM("d_theta : " << d_theta.transpose());
+
 
         // Nullspace
         // http://docs.ros.org/en/kinetic/api/stomp_moveit/html/namespacestomp__moveit_1_1utils_1_1kinematics.html#a20302c0200bda263138abeda4e91d0f4
         // https://homes.cs.washington.edu/~todorov/courses/cseP590/06_JacobianMethods.pdf
-        // int num_joints = current_joints.position.size();
-        // Eigen::MatrixXd jacb_nullspace = Eigen::MatrixXd::Identity(num_joints,num_joints) - jacb_pseudo_inv * jacobian;
+        int num_joints = current_joints.position.size();
+        Eigen::MatrixXd nullspaceMat = jacb_pseudo_inv * jacobian;
+        Eigen::MatrixXd jacb_nullspace = Eigen::MatrixXd::Identity(num_joints,num_joints) - nullspaceMat;
         // ROS_INFO_STREAM("Nullspace : \n" << jacb_nullspace);
         // Eigen::VectorXd d_theta_nullspace = -d_theta;
         // ROS_INFO_STREAM("d_theta_nullspace : \n" << d_theta_nullspace);
         // Eigen::VectorXd nullspace_theta = (jacb_nullspace * d_theta_nullspace);
         // ROS_INFO_STREAM("Nullspace theta: \n" << nullspace_theta);
+
+        /////////////////////////////////
+        // Double-check
+        Eigen::VectorXd _debug_d_error = jacobian * d_theta;
+        ROS_WARN_STREAM("debug d_error : " << _debug_d_error.transpose());
+        ROS_INFO_STREAM("jaco_pseudo_inv * jacobian: \n" << nullspaceMat);
+        ROS_WARN_STREAM("I - (jac_pseudo_inv * jacobian): \n" << jacb_nullspace);
+        if (debug_) { debugPause(); }
+        /////////////////////////////////
 
         // joint += d_theta
         for (int i = 0; i < current_joints.position.size(); i++)
@@ -551,22 +691,20 @@ int main(int argc, char **argv)
         // Update the current joint state in the MoveIt
         kinematic_state->setJointGroupPositions(joint_model_group, current_joints.position);
 
+        ros::Time now = ros::Time::now();
+        dt = (now - last_time).toSec();
+        last_time = now;
+
         // Print status
         {
-            ros::Time now = ros::Time::now();
-            double hz = 1.0 / (now - last_time).toSec();
-            last_time = now;
-
             std::string j_value_str;
             for (int i = 0; i < current_joints.position.size(); i++)
             {
                 j_value_str += "\t" + std::to_string(current_joints.position[i] * rad2deg) + "\n";
             }
             d_theta *= rad2deg;
-            ROS_INFO_STREAM("d_theta (deg): " << d_theta.transpose() << " [" << hz << " Hz]\n" <<
+            ROS_INFO_STREAM("d_theta (deg): " << d_theta.transpose() << " [" << (1.0 / dt) << " Hz]\n" <<
                 "current joints (deg):\n" << j_value_str);
-            // count++;
-            // if (count > 20) {debugPause();}
         }
         ros::spinOnce();
         rate.sleep();

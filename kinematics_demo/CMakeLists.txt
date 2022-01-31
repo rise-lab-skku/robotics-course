@@ -46,6 +46,7 @@ include_directories(SYSTEM
   ${THIS_PACKAGE_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIRS}
 )
+include_directories(include ${catkin_INCLUDE_DIRS})
 
 add_executable(fk_node src/fk_main.cpp)
 target_link_libraries(fk_node
@@ -63,6 +64,19 @@ target_link_libraries(ik_linear
 )
 
 add_executable(singularity src/singularity.cpp)
+# target_include_directories(singularity PUBLIC
+#   ${CMAKE_CURRENT_SOURCE_DIR}/include/kinematics_demo
+# )
 target_link_libraries(singularity
+  ${catkin_LIBRARIES}
+)
+
+catkin_add_gtest(so3_test test/so3_test.cpp)
+target_link_libraries(so3_test
+  ${catkin_LIBRARIES}
+)
+
+catkin_add_gtest(se3_test test/se3_test.cpp)
+target_link_libraries(se3_test
   ${catkin_LIBRARIES}
 )

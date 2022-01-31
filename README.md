@@ -57,6 +57,16 @@
       ros-melodic-pcl-ros
   ```
 
+- gTest (for kinematics_demo)
+
+  ```sh
+  sudo apt install libgtest-dev cmake
+  cd /usr/src/gtest
+  sudo cmake CMakeLists.txt
+  sudo make
+  sudo cp *.a /usr/lib
+  ```
+
 ### Installation via `rosdep`
 
 [http://wiki.ros.org/rosdep](http://wiki.ros.org/rosdep)

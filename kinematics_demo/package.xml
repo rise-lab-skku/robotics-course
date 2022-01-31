@@ -34,6 +34,8 @@
   <exec_depend>rviz_visual_tools</exec_depend>
   <exec_depend>traj_plan</exec_depend>
 
+  <test_depend>rosunit</test_depend>
+
   <export>
   </export>
 </package>

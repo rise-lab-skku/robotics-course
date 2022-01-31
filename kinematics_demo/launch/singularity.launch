@@ -1,18 +1,13 @@
 <launch>
-    <!-- <arg name="epsilon" default="0.011" /> -->
-    <!-- <arg name="lambda" default="0.1" /> -->
-
     <arg name="robot" default="puma_560" />
-    <arg name="epsilon" default="0.01" />
-
-    <!-- scara, rrr -->
-    <!-- <arg name="lambda" default="0.1" /> -->
-    <!-- puma -->
-    <arg name="lambda" default="30" />
+    <arg name="epsilon" default="0.011" />
+    <arg name="lambda" default="0.1" />
+    <arg name="debug" default="true" />
 
     <node pkg="kinematics_demo" type="singularity" name="singularity" output="screen">
         <param name="robot" value="$(arg robot)" type="string" />
         <param name="marker_scale" value="0.2" type="double" />
+        <param name="debug" value="$(arg debug)" type="bool" />
 
         <!-- damped pseudo inverse -->
         <!-- When epsilon is very large, always damped. -->
