@@ -37,8 +37,7 @@ int main(int argc, char **argv)
     spinner.start();
     static const std::string LOGNAME = "ik_node";
 
-    // rosrun fk_moveit fk_node _robot:=puma_560
-    int robot_type;
+    // rosrun kinematics_demo ik_node _robot:=puma_560
     std::string planning_group;
     if (nh.getParam("robot", planning_group))
     {
@@ -98,7 +97,7 @@ int main(int argc, char **argv)
     // Setup for planning
     moveit::planning_interface::MoveGroupInterface move_group(planning_group);
     moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
-    move_group.setWorkspace(-2, -2, 0, 2, 2, 3);
+    move_group.setWorkspace(-2, -2, -0.5, 2, 2, 3);
 
     // Setup for IK
     robot_state::RobotStatePtr kinematic_state(move_group.getCurrentState());

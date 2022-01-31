@@ -57,6 +57,16 @@
       ros-melodic-pcl-ros
   ```
 
+- gTest (for kinematics_demo)
+
+  ```sh
+  sudo apt install libgtest-dev cmake
+  cd /usr/src/gtest
+  sudo cmake CMakeLists.txt
+  sudo make
+  sudo cp *.a /usr/lib
+  ```
+
 ### Installation via `rosdep`
 
 [http://wiki.ros.org/rosdep](http://wiki.ros.org/rosdep)
@@ -67,7 +77,7 @@
 
 Clone this repository into your `catkin_ws/src`. ([How to "git clone" including submodules?](https://stackoverflow.com/questions/3796927/how-to-git-clone-including-submodules))
 
-```
+```sh
 git clone --recursive https://github.com/rise-lab-skku/robotics-course.git
 ```
 
@@ -127,6 +137,9 @@ robots 폴더 내용
   - IMU calibration tutorial
 - g++/{ Eigen_vs_STL, DH, PoE }
   - [@ryul1206](https://github.com/ryul1206)
+- kinematics_demo/{ so3, se3 }
+  - [@ohilho](https://github.com/ohilho)
+  - Copied from https://github.com/ohilho/PoseRepresentationLibrary
 - kinematics_demo
   - [@ryul1206](https://github.com/ryul1206)
   - fk_node (fk_main.cpp): Implemented for Puma560 and RRR
@@ -144,6 +157,7 @@ robots 폴더 내용
     - Demo
       - `roslaunch {ROBOT}_moveit_config demo.launch`
       - `rosrun kinematics_demo ik_linear _robot:={PLANNING_GROUP}`
+  - singularity (singularity.cpp)
 - lidar_roi_example
   - [@jiyou384](https://github.com/jiyou384)
   - Velodyne Puck lidar + PCL library tutorial
