@@ -3,6 +3,7 @@ project(kinematics_demo)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_FLAGS "-pthread")
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -16,6 +17,10 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(Eigen3 REQUIRED)
+
+
+find_package(GTest REQUIRED)
+find_package(Threads REQUIRED)
 
 ###################################
 ## catkin specific configuration ##
@@ -39,6 +44,7 @@ catkin_package(
 include_directories(SYSTEM
   ${THIS_PACKAGE_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIRS}
+  ${GTEST_INCLUDE_DIRS}
 )
 
 add_executable(fk_node src/fk_main.cpp)
@@ -54,4 +60,12 @@ target_link_libraries(ik_node
 add_executable(ik_linear src/ik_linear_cartesian.cpp)
 target_link_libraries(ik_linear
   ${catkin_LIBRARIES}
+)
+
+
+add_executable(obvious_test src/obvious_test.cpp)
+target_link_libraries(obvious_test
+pthread
+${GTEST_LIBRARIES}
+${GTEST_MAIN_LIBRARIES}
 )
