@@ -144,6 +144,7 @@ robots 폴더 내용
     - Demo
       - `roslaunch {ROBOT}_moveit_config demo.launch`
       - `rosrun kinematics_demo ik_linear _robot:={PLANNING_GROUP}`
+  - singularity (singularity.cpp)
 - lidar_roi_example
   - [@jiyou384](https://github.com/jiyou384)
   - Velodyne Puck lidar + PCL library tutorial
