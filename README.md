@@ -137,6 +137,9 @@ robots 폴더 내용
   - IMU calibration tutorial
 - g++/{ Eigen_vs_STL, DH, PoE }
   - [@ryul1206](https://github.com/ryul1206)
+- kinematics_demo/{ so3, se3 }
+  - [@ohilho](https://github.com/ohilho)
+  - Copied from https://github.com/ohilho/PoseRepresentationLibrary
 - kinematics_demo
   - [@ryul1206](https://github.com/ryul1206)
   - fk_node (fk_main.cpp): Implemented for Puma560 and RRR

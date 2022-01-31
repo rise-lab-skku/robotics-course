@@ -16,7 +16,9 @@
 #include <tf/tf.h>
 #include <eigen3/Eigen/Dense>
 
+// https://github.com/ohilho/PoseRepresentationLibrary
 #include "kinematics_demo/so3.hpp"
+#include "kinematics_demo/se3.hpp"
 
 // Global variables to make this code easier
 bool is_global_initialized = false;
@@ -235,9 +237,7 @@ namespace kinematics
         return R;
     }
 
-
-
-    geometry_msgs::Pose dPose(
+    geometry_msgs::Pose dPose_geom(
         const geometry_msgs::Pose &target,
         const geometry_msgs::Pose &ref)
     {
@@ -251,6 +251,29 @@ namespace kinematics
         tf::Transform d_tf = ref_tf.inverse() * target_tf;
         geometry_msgs::Pose d_pose;
         tf::poseTFToMsg(d_tf, d_pose);
+        return d_pose;
+    }
+
+    Eigen::Matrix4d dPose(
+        const geometry_msgs::Pose &target,
+        const geometry_msgs::Pose &ref)
+    {
+        ROS_INFO("dPose");
+        tf::Transform target_tf(
+            tf::Quaternion(target.orientation.x, target.orientation.y, target.orientation.z, target.orientation.w),
+            tf::Vector3(target.position.x, target.position.y, target.position.z));
+        tf::Transform ref_tf(
+            tf::Quaternion(ref.orientation.x, ref.orientation.y, ref.orientation.z, ref.orientation.w),
+            tf::Vector3(ref.position.x, ref.position.y, ref.position.z));
+        // target - ref
+        ROS_INFO("--asdfasdfasdf");
+        tf::Transform d_tf = ref_tf.inverse() * target_tf;
+        Eigen::Matrix4d d_pose;
+        d_pose << d_tf.getBasis().getRow(0).getX(), d_tf.getBasis().getRow(0).getY(), d_tf.getBasis().getRow(0).getZ(), d_tf.getOrigin().getX(),
+                  d_tf.getBasis().getRow(1).getX(), d_tf.getBasis().getRow(1).getY(), d_tf.getBasis().getRow(1).getZ(), d_tf.getOrigin().getY(),
+                  d_tf.getBasis().getRow(2).getX(), d_tf.getBasis().getRow(2).getY(), d_tf.getBasis().getRow(2).getZ(), d_tf.getOrigin().getZ(),
+                  0, 0, 0, 1;
+        ROS_INFO_STREAM("d_pose mat:\n" << d_pose);
         return d_pose;
     }
 
@@ -448,7 +471,7 @@ private:
         /**
          * Initialize slerp parameters
          */
-        geometry_msgs::Pose d_pose = kinematics::dPose(to_, from_);
+        geometry_msgs::Pose d_pose = kinematics::dPose_geom(to_, from_);
         // Estimate the required time due to position
         double position_dist = sqrt(
             d_pose.position.x*d_pose.position.x +
@@ -576,13 +599,13 @@ int main(int argc, char **argv)
         Eigen::MatrixXd jacobian;
         kinematic_state->getJacobian(
             joint_model_group, eef_link, reference_point_position, jacobian, use_quat_repr);
-        ROS_INFO_STREAM("Jacobian : \n" << jacobian);
+        // ROS_INFO_STREAM("Jacobian : \n" << jacobian);
 
         // Damped pseudo-inverse
         Eigen::MatrixXd jacb_pseudo_inv;
         kinematics::calculateDampedPseudoInverse(jacobian, jacb_pseudo_inv, dls_eps, dls_lambda);
         // kinematics::calculateDampedPseudoInverseWithoutSVD(jacobian, jacb_pseudo_inv, dls_eps, dls_lambda);
-        ROS_INFO_STREAM("Jacobian pseudo inversse : \n" << jacb_pseudo_inv);
+        // ROS_INFO_STREAM("Jacobian pseudo inversse : \n" << jacb_pseudo_inv);
 
         // ref_pose from FK
         kinematics::calcFK(
@@ -600,67 +623,58 @@ int main(int argc, char **argv)
         target_ps.header.stamp = ros::Time::now();
         target_ps.pose = local_target.getPose();
         local_target_pub.publish(target_ps);
+        // ROS_INFO_STREAM("ref, target axes are published to rviz.");
 
         // d_error
-        geometry_msgs::Pose error_pose = kinematics::dPose(target_ps.pose, eef_pose);
-        if (use_quat_repr)
-        {
-            // BUG!!!!!!!!!!!!!!!!!!!!
-            ROS_ERROR_STREAM("Unit quat is wrong.");
-            return 1;
-            Eigen::VectorXd d_error(7);  // position, quaternion
-            d_error << error_pose.position.x,
-                    error_pose.position.y,
-                    error_pose.position.z,
-                    error_pose.orientation.w,  // w first (since, jacobian_with_quat)
-                    error_pose.orientation.x,
-                    error_pose.orientation.y,
-                    error_pose.orientation.z;
-            ROS_INFO_STREAM("d_error : " << d_error.transpose());
-        }
-        double dx = error_pose.position.x;
-        double dy = error_pose.position.y;
-        double dz = error_pose.position.z;
+        // geometry_msgs::Pose error_pose = kinematics::dPose(target_ps.pose, eef_pose);
+        // if (use_quat_repr)
+        // {
+        //     // BUG!!!!!!!!!!!!!!!!!!!!
+        //     ROS_ERROR_STREAM("Unit quat is wrong.");
+        //     return 1;
+        //     Eigen::VectorXd d_error(7);  // position, quaternion
+        //     d_error << error_pose.position.x,
+        //             error_pose.position.y,
+        //             error_pose.position.z,
+        //             error_pose.orientation.w,  // w first (since, jacobian_with_quat)
+        //             error_pose.orientation.x,
+        //             error_pose.orientation.y,
+        //             error_pose.orientation.z;
+        //     ROS_INFO_STREAM("d_error : " << d_error.transpose());
+        // }
 
-        /********** phi **********/
-        // so3
-        // Get w rotation from quaternion
-        double quat_angle = 2.0 * acos(error_pose.orientation.w);
-        // Rotation axis
-        Eigen::Vector3d axis_k;
-        axis_k << error_pose.orientation.x,
-                  error_pose.orientation.y,
-                  error_pose.orientation.z;
-        axis_k /= sin(quat_angle / 2.0);
-        ROS_INFO_STREAM("Norm of axis_k: " << axis_k.norm());
+        // Body twist error
+        Eigen::Matrix4d error_pose = kinematics::dPose(target_ps.pose, eef_pose);
+        Eigen::VectorXd bTwist_error(6);  // position, quaternion
+        SE3::log(error_pose, bTwist_error);
+        // ROS_INFO_STREAM("Body twist error : " << bTwist_error.transpose());
 
-        // SE3
-        Eigen::Matrix3d Jei =
-            (sin(quat_angle) / quat_angle) * Eigen::Matrix3d::Identity(3, 3);
+        // Body twist -> Spatial twist (Special thanks to @SW Lee)
+        geometry_msgs::Pose origin;
+        origin.orientation.w = 1.0;
+        Eigen::Matrix4d eef_trans = kinematics::dPose(eef_pose, origin);
+        Eigen::MatrixXd adjoint;
+        SE3::adjoint(eef_trans, adjoint);
+        // ROS_INFO_STREAM("adjoint: \n" << adjoint);
 
-
-        Eigen::VectorXd d_error; // just for compile
-
-        // twist
-        // Eigen::VectorXd twist(6);
-        // twist << dx /
-
-        // joint_vel = damped_pseudo_inverse * twist
+        // Spatial twist error
+        Eigen::VectorXd sTwist_error = adjoint * bTwist_error;
+        // ROS_INFO_STREAM("Spatial twist error : " << sTwist_error.transpose());
 
         // Eigen::VectorXd d_theta = jacb_pseudo_inv * d_error;
         // Eigen::VectorXd d_theta_deg = d_theta * rad2deg;
+
+        Eigen::VectorXd d_theta = jacb_pseudo_inv * sTwist_error;
         // ROS_INFO_STREAM("d_theta : " << d_theta.transpose());
-        Eigen::VectorXd d_theta = jacb_pseudo_inv * d_error;
-        Eigen::VectorXd d_theta_deg = d_theta * rad2deg;
-        ROS_INFO_STREAM("d_theta : " << d_theta.transpose());
 
 
         // Nullspace
         // http://docs.ros.org/en/kinetic/api/stomp_moveit/html/namespacestomp__moveit_1_1utils_1_1kinematics.html#a20302c0200bda263138abeda4e91d0f4
         // https://homes.cs.washington.edu/~todorov/courses/cseP590/06_JacobianMethods.pdf
-        int num_joints = current_joints.position.size();
-        Eigen::MatrixXd nullspaceMat = jacb_pseudo_inv * jacobian;
-        Eigen::MatrixXd jacb_nullspace = Eigen::MatrixXd::Identity(num_joints,num_joints) - nullspaceMat;
+        // int num_joints = current_joints.position.size();
+        // Eigen::MatrixXd nullspaceMat = jacb_pseudo_inv * jacobian;
+        // Eigen::MatrixXd jacb_nullspace = Eigen::MatrixXd::Identity(num_joints,num_joints) - nullspaceMat;
+
         // ROS_INFO_STREAM("Nullspace : \n" << jacb_nullspace);
         // Eigen::VectorXd d_theta_nullspace = -d_theta;
         // ROS_INFO_STREAM("d_theta_nullspace : \n" << d_theta_nullspace);
@@ -670,9 +684,9 @@ int main(int argc, char **argv)
         /////////////////////////////////
         // Double-check
         Eigen::VectorXd _debug_d_error = jacobian * d_theta;
-        ROS_WARN_STREAM("debug d_error : " << _debug_d_error.transpose());
-        ROS_INFO_STREAM("jaco_pseudo_inv * jacobian: \n" << nullspaceMat);
-        ROS_WARN_STREAM("I - (jac_pseudo_inv * jacobian): \n" << jacb_nullspace);
+        // ROS_WARN_STREAM("debug d_error : " << _debug_d_error.transpose());
+        // ROS_INFO_STREAM("jaco_pseudo_inv * jacobian: \n" << nullspaceMat);
+        // ROS_WARN_STREAM("I - (jac_pseudo_inv * jacobian): \n" << jacb_nullspace);
         if (debug_) { debugPause(); }
         /////////////////////////////////
 

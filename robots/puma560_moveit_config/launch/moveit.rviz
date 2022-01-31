@@ -4,6 +4,8 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /MotionPlanning1
+        - /MotionPlanning1/Planning Request1
         - /InteractiveMarkers1
         - /TF1/Frames1
       Splitter Ratio: 0.4571428596973419
@@ -131,7 +133,7 @@ Visualization Manager:
         Interactive Marker Size: 0
         Joint Violation Color: 255; 0; 255
         Planning Group: puma_560
-        Query Goal State: true
+        Query Goal State: false
         Query Start State: false
         Show Workspace: false
         Start State Alpha: 1
@@ -270,25 +272,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 2.2692227363586426
+      Distance: 1.6582318544387817
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.06319311261177063
-        Y: -0.06681527197360992
-        Z: 1.519918441772461e-6
+        X: 0.6662803888320923
+        Y: 0.0037067532539367676
+        Z: 1.341104507446289e-6
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.1297963261604309
+      Pitch: 0.36979609727859497
       Target Frame: link1
       Value: XYOrbit (rviz)
-      Yaw: 0.47537392377853394
+      Yaw: 1.475365400314331
     Saved: ~
 Window Geometry:
   Displays:
@@ -306,5 +308,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1445
-  X: 934
-  Y: 58
+  X: 519
+  Y: 1144

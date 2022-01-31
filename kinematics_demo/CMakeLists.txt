@@ -71,12 +71,14 @@ target_link_libraries(singularity
   ${catkin_LIBRARIES}
 )
 
-catkin_add_gtest(so3_test test/so3_test.cpp)
-target_link_libraries(so3_test
-  ${catkin_LIBRARIES}
-)
+# # catkin_add_gtest(so3_test test/so3_test.cpp)
+# catkin_add_executable_with_gtest(so3_test test/so3_test.cpp)
+# target_link_libraries(so3_test
+#   ${catkin_LIBRARIES}
+# )
 
-catkin_add_gtest(se3_test test/se3_test.cpp)
-target_link_libraries(se3_test
-  ${catkin_LIBRARIES}
-)
+# # catkin_add_gtest(se3_test test/se3_test.cpp)
+# catkin_add_executable_with_gtest(se3_test test/se3_test.cpp)
+# target_link_libraries(se3_test
+#   ${catkin_LIBRARIES}
+# )
