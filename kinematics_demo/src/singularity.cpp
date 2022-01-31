@@ -430,12 +430,12 @@ int main(int argc, char **argv)
     {
         // Interactive marker for the round-trip pose target
         eef_target1 = eef_pose;
-        eef_target1.position.x -= 0.1;
-        eef_target1.position.y += 0.1;
+        // eef_target1.position.x -= 0.1;
+        // eef_target1.position.y += 0.1;
         visualization::makeRoundTripMarker(
             server, t1_name, "Round-trip Pose Target 1", frame_id, eef_target1, marker_scale);
         eef_target2 = eef_pose;
-        eef_target2.position.x += 0.3;
+        // eef_target2.position.x += 0.3;
         visualization::makeRoundTripMarker(
             server, t2_name, "Round-trip Pose Target 2", frame_id, eef_target2, marker_scale);
         is_global_initialized = true;
@@ -469,6 +469,7 @@ int main(int argc, char **argv)
         nh.advertise<geometry_msgs::PoseStamped>("/singularity/local_target", 1);
 
     // Main Loop
+    const double rad2deg = 180.0 / M_PI;
     int count = 0;
     ros::Time last_time = ros::Time::now();
     ros::Rate rate(512);
@@ -501,6 +502,8 @@ int main(int argc, char **argv)
                    error_pose.orientation.x,
                    error_pose.orientation.y,
                    error_pose.orientation.z;
+        Eigen::VectorXd d_error_deg = d_error * rad2deg;
+        ROS_INFO_STREAM("d_error (deg): " << d_error_deg.transpose());
 
         /**
          * Jacobian with quaternion:
@@ -519,30 +522,26 @@ int main(int argc, char **argv)
 
         // d_theta = damped_pseudo_inverse * d_error
         Eigen::VectorXd d_theta = jacb_pseudo_inv * d_error;
-        ROS_INFO_STREAM("d_theta : \n" << d_theta);
+        Eigen::VectorXd d_theta_deg = d_theta * rad2deg;
+        ROS_INFO_STREAM("d_theta (deg): \n" << d_theta_deg.transpose());
 
         // Nullspace
-        int num_joints = current_joints.position.size();
-        Eigen::MatrixXd jacb_nullspace = Eigen::MatrixXd::Identity(num_joints,num_joints) - jacb_pseudo_inv * jacobian;
-        ROS_INFO_STREAM("Nullspace : \n" << jacb_nullspace);
-
         // http://docs.ros.org/en/kinetic/api/stomp_moveit/html/namespacestomp__moveit_1_1utils_1_1kinematics.html#a20302c0200bda263138abeda4e91d0f4
         // https://homes.cs.washington.edu/~todorov/courses/cseP590/06_JacobianMethods.pdf
-        Eigen::VectorXd d_theta_nullspace = -d_theta;
-        ROS_INFO_STREAM("d_theta_nullspace : \n" << d_theta_nullspace);
-        Eigen::VectorXd nullspace_theta = (jacb_nullspace * d_theta_nullspace);
-        ROS_INFO_STREAM("Nullspace theta: \n" << nullspace_theta);
-
-        // kinematics::computeJacobianNullspace(
-        //     kinematic_state, joint_model_group, eef
-        // d_theta += nullspace_theta;
+        // int num_joints = current_joints.position.size();
+        // Eigen::MatrixXd jacb_nullspace = Eigen::MatrixXd::Identity(num_joints,num_joints) - jacb_pseudo_inv * jacobian;
+        // ROS_INFO_STREAM("Nullspace : \n" << jacb_nullspace);
+        // Eigen::VectorXd d_theta_nullspace = -d_theta;
+        // ROS_INFO_STREAM("d_theta_nullspace : \n" << d_theta_nullspace);
+        // Eigen::VectorXd nullspace_theta = (jacb_nullspace * d_theta_nullspace);
+        // ROS_INFO_STREAM("Nullspace theta: \n" << nullspace_theta);
 
         // joint += d_theta
         for (int i = 0; i < current_joints.position.size(); i++)
         {
-            // const double dmax = 0.05 * M_PI / 180.0;
-            // if (d_theta[i] > dmax) {d_theta[i] = dmax;}
-            // else if (d_theta[i] < -dmax) {d_theta[i] = -dmax;}
+            const double dmax = 0.05 * M_PI / 180.0;
+            if (d_theta[i] > dmax) {d_theta[i] = dmax;}
+            else if (d_theta[i] < -dmax) {d_theta[i] = -dmax;}
 
             current_joints.position[i] += d_theta[i];
         }
@@ -558,7 +557,6 @@ int main(int argc, char **argv)
             double hz = 1.0 / (now - last_time).toSec();
             last_time = now;
 
-            const double rad2deg = 180.0 / M_PI;
             std::string j_value_str;
             for (int i = 0; i < current_joints.position.size(); i++)
             {

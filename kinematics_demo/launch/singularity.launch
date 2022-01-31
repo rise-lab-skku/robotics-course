@@ -3,10 +3,10 @@
     <!-- <arg name="lambda" default="0.1" /> -->
 
     <arg name="robot" default="puma_560" />
-    <arg name="epsilon" default="1" />
+    <arg name="epsilon" default="0.01" />
 
     <!-- scara, rrr -->
-    <!-- <arg name="lambda" default="1" /> -->
+    <!-- <arg name="lambda" default="0.1" /> -->
     <!-- puma -->
     <arg name="lambda" default="30" />
 
