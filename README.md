@@ -138,26 +138,18 @@ robots 폴더 내용
 - g++/{ Eigen_vs_STL, DH, PoE }
   - [@ryul1206](https://github.com/ryul1206)
 - kinematics_demo/{ so3, se3 }
-  - [@ohilho](https://github.com/ohilho)
-  - Copied from https://github.com/ohilho/PoseRepresentationLibrary
+  - [@ohilho](https://github.com/ohilho) (https://github.com/ohilho/PoseRepresentationLibrary)
 - kinematics_demo
-  - [@ryul1206](https://github.com/ryul1206)
-  - fk_node (fk_main.cpp): Implemented for Puma560 and RRR
-    - Demo
-      - `roslaunch {ROBOT}_moveit_config demo.launch`
-      - `rosrun traj_plan traj_plan`
-      - `rosrun kinematics_demo fk_node _robot:={PLANNONG_GROUP}`
-  - ik_node (ik_main.cpp): Implemented for Puma560 and RRR
-    - ![IK demo](./img/ik_2022-01-13_184153.jpg) ![IK demo](./img/ik_rrr_2022-01-14.jpg)
-    - Demo
-      - `roslaunch {ROBOT}_moveit_config demo.launch`
-      - `rosrun kinematics_demo ik_node _robot:={PLANNIG_GROUP}`
-  - ik_linear (ik_linear_cartesian.cpp): Implemented for Puma560 and RRR
-    - ![IK demo](./img/ik_linear_2022-01-13_213403.jpg) ![IK demo](./img/ik_rrr_linear_2022-01-14.jpg)
-    - Demo
-      - `roslaunch {ROBOT}_moveit_config demo.launch`
-      - `rosrun kinematics_demo ik_linear _robot:={PLANNING_GROUP}`
   - singularity (singularity.cpp)
+    - [@ohilho](https://github.com/ohilho), [@ssw0536](https://github.com/ssw0536), [@shinjinjae](https://github.com/shinjinjae), @Seung Won Lee, [@ryul1206](https://github.com/ryul1206)
+  - fk_node (fk_main.cpp): Implemented for Puma560 and RRR
+    - [@ryul1206](https://github.com/ryul1206)
+  - ik_node (ik_main.cpp): Implemented for Puma560 and RRR
+    - [@ryul1206](https://github.com/ryul1206)
+    - ![IK demo](./img/ik_2022-01-13_184153.jpg) ![IK demo](./img/ik_rrr_2022-01-14.jpg)
+  - ik_linear (ik_linear_cartesian.cpp): Implemented for Puma560 and RRR
+    - [@ryul1206](https://github.com/ryul1206)
+    - ![IK demo](./img/ik_linear_2022-01-13_213403.jpg) ![IK demo](./img/ik_rrr_linear_2022-01-14.jpg)
 - lidar_roi_example
   - [@jiyou384](https://github.com/jiyou384)
   - Velodyne Puck lidar + PCL library tutorial
@@ -165,9 +157,7 @@ robots 폴더 내용
   - [@HukoOo](https://github.com/HukoOo), [@ryul1206](https://github.com/ryul1206), [@caro33](https://github.com/caro33), [@shinjinjae](https://github.com/shinjinjae)
 - pick_n_place
   - [@ryul1206](https://github.com/ryul1206) (Reference: [MoveIt C++ Tutorial](https://github.com/ros-planning/moveit_tutorials/blob/melodic-devel/doc/move_group_interface/src/move_group_interface_tutorial.cpp))
-  - Demo
-    - `roslaunch pick_n_place demo.launch`
-    - `rosrun pick_n_place my_puma`
+  - Demo: `roslaunch pick_n_place demo.launch` and `rosrun pick_n_place my_puma`
 - rosbag_archive
   - [@shinjinjae](https://github.com/shinjinjae), [@kws1611](https://github.com/rladntjd), [@ssw0536](https://github.com/ssw0536), [@jiyou384](https://github.com/jiyou384)
   - `rosbag play ***.bag` (or `rosbag play -l ***.bag`)

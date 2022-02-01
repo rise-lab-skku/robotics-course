@@ -1,3 +1,11 @@
+/**
+ * ik_main.cpp
+ *
+ * [ Demo ]
+ * `roslaunch {ROBOT}_moveit_config demo.launch`
+ * `rosrun kinematics_demo ik_node _robot:={PLANNIG_GROUP}`
+ *
+ */
 #include <ros/ros.h>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>

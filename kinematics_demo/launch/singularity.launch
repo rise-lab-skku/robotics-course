@@ -2,7 +2,7 @@
     <arg name="robot" default="puma_560" />
     <arg name="epsilon" default="0.011" />
     <arg name="lambda" default="0.1" />
-    <arg name="debug" default="true" />
+    <arg name="debug" default="false" />
 
     <node pkg="kinematics_demo" type="singularity" name="singularity" output="screen">
         <param name="robot" value="$(arg robot)" type="string" />
