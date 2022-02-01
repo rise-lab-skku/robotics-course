@@ -4,10 +4,9 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /MotionPlanning1
         - /MotionPlanning1/Planning Request1
+        - /TF1
         - /TF1/Tree1
-        - /local target1
       Splitter Ratio: 0.3781512677669525
     Tree Height: 332
   - Class: rviz/Help
@@ -235,7 +234,7 @@ Visualization Manager:
       Shaft Length: 1
       Shaft Radius: 0.05000000074505806
       Shape: Axes
-      Topic: /singularity/local_target
+      Topic: /singularity/current_eef
       Unreliable: false
       Value: true
   Enabled: true
@@ -254,25 +253,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 1.2113996744155884
+      Distance: 1.2618534564971924
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.3031500279903412
-        Y: 0.2150231897830963
+        X: 0.38012149930000305
+        Y: -0.211089625954628
         Z: 1.2665992699112394e-6
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.3647958040237427
+      Pitch: 1.5697963237762451
       Target Frame: link1
       Value: XYOrbit (rviz)
-      Yaw: 0.011750946752727032
+      Yaw: 4.714932918548584
     Saved: ~
 Window Geometry:
   Displays:
@@ -290,5 +289,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1504
-  X: 475
-  Y: 1139
+  X: 613
+  Y: 58

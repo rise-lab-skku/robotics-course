@@ -83,7 +83,7 @@ void log(const Eigen::Matrix4d &SE3, Eigen::VectorXd &se3)
     {
         se3.block(0, 0, 3, 1) = SE3.block(0, 3, 3, 1).normalized();
         se3.block(3, 0, 3, 1) = Eigen::Vector3d::Zero();
-        ROS_INFO_STREAM("se3: " << se3.transpose());
+        // ROS_INFO_STREAM("se3: " << se3.transpose());
         return;
     }
     // ROS_INFO_STREAM("bvefore hasdktjakls");

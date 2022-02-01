@@ -3,11 +3,7 @@ Panels:
     Help Height: 70
     Name: Displays
     Property Tree Widget:
-      Expanded:
-        - /MotionPlanning1
-        - /MotionPlanning1/Planning Request1
-        - /InteractiveMarkers1
-        - /TF1/Frames1
+      Expanded: ~
       Splitter Ratio: 0.4571428596973419
     Tree Height: 356
   - Class: rviz/Help
@@ -228,19 +224,40 @@ Visualization Manager:
       Unreliable: false
       Value: true
     - Class: rviz/TF
-      Enabled: false
+      Enabled: true
       Frame Timeout: 15
       Frames:
         All Enabled: true
-      Marker Scale: 1
+        link1:
+          Value: true
+        link2:
+          Value: true
+        link3:
+          Value: true
+        link4:
+          Value: true
+        link5:
+          Value: true
+        link6:
+          Value: true
+        link7:
+          Value: true
+      Marker Scale: 0.4000000059604645
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: true
       Tree:
-        {}
+        link1:
+          link2:
+            link3:
+              link4:
+                link5:
+                  link6:
+                    link7:
+                      {}
       Update Interval: 0
-      Value: false
+      Value: true
     - Alpha: 1
       Axes Length: 0.07000000029802322
       Axes Radius: 0.019999999552965164
@@ -272,25 +289,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 1.6582318544387817
+      Distance: 2.0744590759277344
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.6662803888320923
-        Y: 0.0037067532539367676
-        Z: 1.341104507446289e-6
+        X: 0.24558231234550476
+        Y: -0.18798285722732544
+        Z: 1.4603137969970703e-6
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.36979609727859497
+      Pitch: 0.33479607105255127
       Target Frame: link1
       Value: XYOrbit (rviz)
-      Yaw: 1.475365400314331
+      Yaw: 4.703551769256592
     Saved: ~
 Window Geometry:
   Displays:
@@ -304,9 +321,9 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000001ca00000365fc0200000007fb000000100044006900730070006c006100790073010000003b000001e5000000c700fffffffb0000000800480065006c00700000000342000000bb0000006e00fffffffb0000000a0056006900650077007300000003b0000000b0000000a000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000001600000016fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e006701000002260000017a0000016900ffffff000003d50000036500000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000001ca00000365fc0200000007fb000000100044006900730070006c006100790073010000003b000001e5000000c700fffffffb0000000800480065006c00700000000342000000bb0000006e00fffffffb0000000a0056006900650077007300000003b0000000b0000000a000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000001600000016fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e006701000002260000017a0000016900ffffff000004e80000036500000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
-  Width: 1445
-  X: 519
-  Y: 1144
+  Width: 1720
+  X: 387
+  Y: 50
