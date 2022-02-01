@@ -657,7 +657,7 @@ int main(int argc, char **argv)
         // joint += d_theta
         for (int i = 0; i < current_joints.position.size(); i++)
         {
-            const double dmax = 0.05 * M_PI / 180.0;
+            const double dmax = 1.0 * M_PI / 180.0;
             if (d_theta[i] > dmax) {d_theta[i] = dmax;}
             else if (d_theta[i] < -dmax) {d_theta[i] = -dmax;}
 
