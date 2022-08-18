@@ -174,6 +174,8 @@ robots 폴더 내용
   - Kalman filter experiments with TurtleBot3
   - Demo: `roslaunch turtle_control demo.launch`
   - turtle_control/bag 폴더만 다운받는 [링크](https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/rise-lab-skku/robotics-course/tree/main/turtle_control/bag)
+- turtlebot_path_tracker
+  - [@shinjinjae](https://github.com/shinjinjae)
 - workspace
   - [@ryul1206](https://github.com/ryul1206)
   - Workspace drawing tutorial
