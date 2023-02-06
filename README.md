@@ -1,4 +1,4 @@
-# robotics-course
+# Robotics Course
 
 > **Note:**
 > * **[자주 묻는 질문(FAQ)](https://github.com/rise-lab-skku/robotics-course/wiki/%EC%9E%90%EC%A3%BC-%EB%AC%BB%EB%8A%94-%EC%A7%88%EB%AC%B8(FAQ)) 페이지가 생겼습니다.**
