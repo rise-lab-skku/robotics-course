@@ -1,7 +1,7 @@
 # Robotics Course
 
 > **Note:**
-> * **[자주 묻는 질문(FAQ)](https://github.com/rise-lab-skku/robotics-course/wiki/%EC%9E%90%EC%A3%BC-%EB%AC%BB%EB%8A%94-%EC%A7%88%EB%AC%B8(FAQ)) 페이지가 생겼습니다.**
+> * **[자주 묻는 질문(FAQ)](https://github.com/rise-lab-skku/robotics-course/wiki/FAQ) 페이지가 생겼습니다.**
 > * **그 외 나머지 질문은 [Discussions](https://github.com/rise-lab-skku/robotics-course/discussions)를 이용하시면 편합니다.**
 > * 질문에는 가급적 많은 정보를 담아주세요. 저희가 원인을 파악하는 것에 도움이 됩니다. 감사합니다.
 
