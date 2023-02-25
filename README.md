@@ -72,6 +72,18 @@
   sudo cp *.a /usr/lib
   ```
 
+- Turtlebot3 packages (for turtlebot_path_tracker) 참고로, `ros-melodic-turtlebot3-fake` 패키지가 강의자료의 내용에 따라 수정되어야 하므로 `apt install`로 설치하지 않습니다.
+
+  ```sh
+  sudo apt install ros-melodic-navigation ros-melodic-gazebo-ros
+  cd ~/catkin_ws/src
+  git clone https://github.com/rise-lab-skku/turtlebot3
+  git clone https://github.com/rise-lab-skku/turtlebot3_msgs
+  git clone https://github.com/rise-lab-skku/turtlebot3_simulations -b robotics-course
+  cd ~/catkin_ws
+  catkin_make
+  ```
+
 ### Installation via `rosdep`
 
 [http://wiki.ros.org/rosdep](http://wiki.ros.org/rosdep)

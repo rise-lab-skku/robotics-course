@@ -135,9 +135,17 @@ include_directories(
 add_executable(traj_plan
   src/traj_plan.cpp
 )
+add_dependencies(traj_plan
+  traj_plan_generate_messages_cpp
+)
+
 add_executable(waypoint_pub
   src/waypoint_pub.cpp
 )
+add_dependencies(waypoint_pub
+  traj_plan_generate_messages_cpp
+)
+
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

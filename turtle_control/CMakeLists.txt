@@ -106,7 +106,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES turtle_control
-  CATKIN_DEPENDS message_generation geometry_msgs sensor_msgs nav_msgs roscpp std_msgs 
+  CATKIN_DEPENDS message_generation geometry_msgs sensor_msgs nav_msgs roscpp std_msgs
 #  DEPENDS system_lib
 )
 
@@ -134,16 +134,25 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable( turtle_control
+add_executable(turtle_control
   src/turtle_control.cpp
+)
+add_dependencies(turtle_control
+  turtle_control_generate_messages_cpp
 )
 
 add_executable(turtle_localization
   src/turtle_localization.cpp
 )
+add_dependencies(turtle_localization
+  turtle_control_generate_messages_cpp
+)
 
 add_executable(turtle_ma
   src/sensor_model.cpp
+)
+add_dependencies(turtle_ma
+  turtle_control_generate_messages_cpp
 )
 
 ## Rename C++ executable without prefix

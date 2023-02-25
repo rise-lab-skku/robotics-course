@@ -51,14 +51,6 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * uncomment the generate_messages entry below
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
-## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
-
-## Generate services in the 'srv' folder
 add_message_files(
   FILES
   LocalPathPoints.msg
@@ -68,19 +60,6 @@ generate_messages(
  DEPENDENCIES
  geometry_msgs
 )
-
-## Generate actions in the 'action' folder
-# add_action_files(
-#   FILES
-#   Action1.action
-#   Action2.action
-# )
-
-## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   geometry_msgs#   nav_msgs#   sensor_msgs#   std_msgs#   turtlebot3_msgs#   visualization_msgs
-# )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -124,7 +103,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
- include 
+ include
  ${catkin_INCLUDE_DIRS}
 )
 
@@ -143,9 +122,11 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(turtlebot_path_generator src/path_generator/turtlebot_path_generator.cpp src/path_generator/main.cpp)
 target_link_libraries(turtlebot_path_generator ${catkin_LIBRARIES})
+add_dependencies(turtlebot_path_generator turtlebot_path_tracker_generate_messages_cpp)
 
 add_executable(turtlebot_path_tracker src/path_tracker/turtlebot_path_tracker.cpp src/path_tracker/main.cpp)
 target_link_libraries(turtlebot_path_tracker ${catkin_LIBRARIES})
+add_dependencies(turtlebot_path_tracker turtlebot_path_tracker_generate_messages_cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
