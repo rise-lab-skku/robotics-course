@@ -72,17 +72,14 @@
   sudo cp *.a /usr/lib
   ```
 
-- Turtlebot3 packages (for turtlebot_path_tracker) 참고로, `ros-melodic-turtlebot3-fake` 패키지가 강의자료의 내용에 따라 수정되어야 하므로 `apt install`로 설치하지 않습니다.
+- Turtlebot3 packages (for turtlebot_path_tracker)
 
   ```sh
   sudo apt install ros-melodic-navigation ros-melodic-gazebo-ros
-  cd ~/catkin_ws/src
-  git clone https://github.com/rise-lab-skku/turtlebot3
-  git clone https://github.com/rise-lab-skku/turtlebot3_msgs
-  git clone https://github.com/rise-lab-skku/turtlebot3_simulations -b robotics-course
-  cd ~/catkin_ws
-  catkin_make
   ```
+
+  - 참고로 `turtlebot3-fake` 패키지도 필요한데, 이 패키지는 강의자료의 내용에 따라 수정되어야 하므로 `apt install`로 설치하지 않습니다. 대신 [Getting Started](#getting-started)에 적힌 순서에 따라 본 저장소를 빌드하여 사용합니다.
+  - 수정된 `turtlebot3-fake`는 `turtlebot3_simulations` 폴더에 있습니다.
 
 ### Installation via `rosdep`
 
@@ -125,7 +122,7 @@ git clone --recursive https://github.com/rise-lab-skku/robotics-course.git
 robots 폴더 내용
 
 - puma560_description
-  - Forked from [here](https://github.com/nimasarli/puma560_description)
+  - Forked from [nimasarli/puma560_description](https://github.com/nimasarli/puma560_description)
   - urdf에 `<collision>`태그가 아예 없으면 moveit이 `<visual>`태그로 충돌을 감지하기 때문에, 충돌을 무시하려면 `<collision>`태그에 더미를 넣어야 함
 - puma560_moveit_config
   - Generated package using MoveIt Assistant
@@ -170,8 +167,9 @@ robots 폴더 내용
 - lidar_roi_example
   - [@jiyou384](https://github.com/jiyou384)
   - Velodyne Puck lidar + PCL library tutorial
-- OpenBase (submodule URL: https://github.com/rise-lab-skku/OpenBase)
+- OpenBase (submodule URL: [rise-lab-skku/OpenBase](https://github.com/rise-lab-skku/OpenBase))
   - [@HukoOo](https://github.com/HukoOo), [@ryul1206](https://github.com/ryul1206), [@caro33](https://github.com/caro33), [@shinjinjae](https://github.com/shinjinjae)
+  - Modified from [GuiRitter/OpenBase](https://github.com/GuiRitter/OpenBase)
 - pick_n_place
   - [@ryul1206](https://github.com/ryul1206) (Reference: [MoveIt C++ Tutorial](https://github.com/ros-planning/moveit_tutorials/blob/melodic-devel/doc/move_group_interface/src/move_group_interface_tutorial.cpp))
   - Demo: `roslaunch pick_n_place demo.launch` and `rosrun pick_n_place my_puma`
@@ -193,6 +191,13 @@ robots 폴더 내용
   - turtle_control/bag 폴더만 다운받는 [링크](https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/rise-lab-skku/robotics-course/tree/main/turtle_control/bag)
 - turtlebot_path_tracker
   - [@shinjinjae](https://github.com/shinjinjae)
+- turtlebot3 (submodule URL: [rise-lab-skku/turtlebot3](https://github.com/rise-lab-skku/turtlebot3))
+  - Forked from [ROBOTIS-GIT/turtlebot3](https://github.com/ROBOTIS-GIT/turtlebot3)
+- turtlebot3_msgs (submodule URL: [rise-lab-skku/turtlebot3_msgs](https://github.com/rise-lab-skku/turtlebot3_msgs))
+  - Forked from [ROBOTIS-GIT/turtlebot3_msgs](https://github.com/ROBOTIS-GIT/turtlebot3_msgs)
+- turtlebot3_simulations (submodule URL: [rise-lab-skku/turtlebot3_simulations](https://github.com/rise-lab-skku/turtlebot3_simulations) `robotics-course` branch)
+  - [@ryul1206](https://github.com/ryul1206)
+  - Modified from [ROBOTIS-GIT/turtlebot3_simulations](https://github.com/ROBOTIS-GIT/turtlebot3_simulations)
 - workspace
   - [@ryul1206](https://github.com/ryul1206)
   - Workspace drawing tutorial

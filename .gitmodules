@@ -1,6 +1,13 @@
-[submodule "puma560_description"]
-	path = puma560_description
-	url = https://github.com/nimasarli/puma560_description.git
 [submodule "OpenBase"]
 	path = OpenBase
 	url = https://github.com/rise-lab-skku/OpenBase.git
+[submodule "turtlebot3"]
+	path = turtlebot3
+	url = https://github.com/rise-lab-skku/turtlebot3
+[submodule "turtlebot3_msgs"]
+	path = turtlebot3_msgs
+	url = https://github.com/rise-lab-skku/turtlebot3_msgs
+[submodule "turtlebot3_simulations"]
+	path = turtlebot3_simulations
+	url = https://github.com/rise-lab-skku/turtlebot3_simulations
+	branch = robotics-course
